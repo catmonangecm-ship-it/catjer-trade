@@ -3,22 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 Bot Trading Multi-Tokens - Prix Temps Réel</title>
+    <title>🎯 Bot Trading TOP 100 Tokens - Achat & Vente</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%); color: white; padding: 20px; min-height: 100vh; }
-        .container { max-width: 1900px; margin: 0 auto; overflow-x: hidden; }
-        h1 { text-align: center; margin-bottom: 10px; font-size: 2.5em; text-shadow: 0 4px 20px rgba(0,0,0,0.5); background: linear-gradient(135deg, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .container { max-width: 1900px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 10px; font-size: 3em; text-shadow: 0 4px 20px rgba(0,0,0,0.5); background: linear-gradient(135deg, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .subtitle { text-align: center; margin-bottom: 30px; }
         .badge { display: inline-block; background: linear-gradient(135deg, #10b981, #059669); padding: 12px 30px; border-radius: 30px; font-weight: bold; font-size: 1.2em; box-shadow: 0 5px 25px rgba(16, 185, 129, 0.5); animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; }
-        .card { background: rgba(255, 255, 255, 0.98); border-radius: 20px; padding: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); color: #1e293b; }
-        .card h2 { color: #7c3aed; margin-bottom: 18px; border-bottom: 3px solid #7c3aed; padding-bottom: 10px; font-size: 1.4em; }
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 25px; }
+        .card { background: rgba(255, 255, 255, 0.98); border-radius: 25px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); color: #1e293b; }
+        .card h2 { color: #7c3aed; margin-bottom: 20px; border-bottom: 3px solid #7c3aed; padding-bottom: 12px; font-size: 1.6em; }
         .status { padding: 18px; border-radius: 15px; margin-bottom: 20px; text-align: center; font-weight: 700; font-size: 1.15em; }
         .status.ok { background: linear-gradient(135deg, #10b981, #059669); color: white; }
         .status.ko { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
@@ -28,9 +26,8 @@
         .input-group label { display: block; margin-bottom: 10px; font-weight: 600; color: #475569; font-size: 1em; }
         .input-group input, .input-group select { width: 100%; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1em; background: white; color: #1e293b; transition: all 0.3s; }
         .input-group input:focus, .input-group select:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); }
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 10px; font-size: 1em; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px; }
-        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
-        .btn:active:not(:disabled) { transform: translateY(0); }
+        .btn { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: 700; cursor: pointer; margin-top: 12px; font-size: 1.15em; transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.8px; }
+        .btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
         .btn-success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
@@ -45,14 +42,6 @@
         .token-item { padding: 12px; background: white; border: 2px solid #e2e8f0; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s; font-size: 0.9em; font-weight: 600; }
         .token-item:hover { border-color: #7c3aed; background: #faf5ff; transform: scale(1.05); }
         .token-item.selected { background: linear-gradient(135deg, #7c3aed, #6366f1); color: white; border-color: #7c3aed; }
-        .token-slot { background: white; border: 3px dashed #e2e8f0; border-radius: 15px; padding: 20px; text-align: center; min-height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; transition: all 0.3s; }
-        .token-slot.filled { border-color: #7c3aed; background: linear-gradient(135deg, #faf5ff, #f3e8ff); border-style: solid; }
-        .token-slot .token-name { font-size: 1.4em; font-weight: 700; color: #7c3aed; }
-        .token-slot .token-price { font-size: 1.1em; color: #059669; font-weight: 600; }
-        .token-slot .remove-btn { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85em; font-weight: 600; transition: all 0.3s; user-select: none; }
-        .token-slot .remove-btn:hover { background: #dc2626; transform: scale(1.05); }
-        .token-slot .remove-btn:active { transform: scale(0.95); }
-        .chart-container { background: white; border-radius: 15px; padding: 20px; margin-top: 20px; height: 450px; position: relative; }
         .signal-box { background: linear-gradient(135deg, #fef3c7, #fde68a); border: 3px solid #f59e0b; border-radius: 15px; padding: 25px; margin: 20px 0; color: #92400e; }
         .signal-box h3 { margin-bottom: 15px; color: #b45309; font-size: 1.3em; }
         .signal-indicator { display: flex; align-items: center; gap: 12px; margin: 12px 0; font-size: 1.1em; font-weight: 600; }
@@ -71,26 +60,19 @@
         .log-entry.premium { border-left-color: #7c3aed; background: rgba(124, 58, 237, 0.15); }
         .wide { grid-column: span 2; }
         .chain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
-        .chain-btn { padding: 15px; border: 3px solid #e2e8f0; background: white; color: #475569; border-radius: 12px; cursor: pointer; font-weight: 700; transition: all 0.3s; font-size: 1em; }
-        .chain-btn:hover { border-color: #7c3aed; background: #faf5ff; transform: scale(1.02); }
-        .chain-btn:active { transform: scale(0.98); }
+        .chain-btn { padding: 18px; border: 3px solid #e2e8f0; background: white; color: #475569; border-radius: 15px; cursor: pointer; font-weight: 700; transition: all 0.3s; font-size: 1.05em; }
+        .chain-btn:hover { border-color: #7c3aed; background: #faf5ff; }
         .chain-btn.active { background: linear-gradient(135deg, #7c3aed, #6366f1); color: white; border-color: #7c3aed; }
         .token-grid::-webkit-scrollbar { width: 8px; }
         .token-grid::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 4px; }
         @media (max-width: 1400px) { .wide { grid-column: span 1; } }
-        @media (max-width: 768px) { 
-            h1 { font-size: 2em; }
-            .dashboard { grid-template-columns: 1fr; }
-            .card { padding: 20px; }
-            .balance-grid { grid-template-columns: 1fr; }
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎯 Bot Trading Multi-Tokens</h1>
+        <h1>🎯 Bot Trading TOP 100 Tokens</h1>
         <div class="subtitle">
-            <span class="badge">⚡ 4 TOKENS - PRIX TEMPS RÉEL</span>
+            <span class="badge">⚡ ACHAT & VENTE - SIGNAUX HAUTE QUALITÉ</span>
         </div>
         
         <div class="dashboard">
@@ -120,43 +102,17 @@
                         <div class="balance-value" id="usdtBal">0.00</div>
                     </div>
                     <div class="balance-box">
-                        <div class="balance-label">Tokens Total</div>
+                        <div class="balance-label">Token Actif</div>
                         <div class="balance-value" id="tokenBal">0.00</div>
                     </div>
                 </div>
             </div>
             
-            <!-- SÉLECTION TOKENS -->
+            <!-- SÉLECTION TOKEN -->
             <div class="card wide">
-                <h2>🪙 Sélection Tokens (4 max)</h2>
-                <div id="tokenStatus" class="status premium">Sélectionnez jusqu'à 4 tokens à trader</div>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
-                    <div class="token-slot" id="slot0">
-                        <span style="font-size: 2em;">➕</span>
-                        <span style="color: #64748b; font-weight: 600;">Slot 1</span>
-                    </div>
-                    <div class="token-slot" id="slot1">
-                        <span style="font-size: 2em;">➕</span>
-                        <span style="color: #64748b; font-weight: 600;">Slot 2</span>
-                    </div>
-                    <div class="token-slot" id="slot2">
-                        <span style="font-size: 2em;">➕</span>
-                        <span style="color: #64748b; font-weight: 600;">Slot 3</span>
-                    </div>
-                    <div class="token-slot" id="slot3">
-                        <span style="font-size: 2em;">➕</span>
-                        <span style="color: #64748b; font-weight: 600;">Slot 4</span>
-                    </div>
-                </div>
+                <h2>🪙 Sélection Token (TOP 100)</h2>
+                <div id="tokenStatus" class="status premium">Sélectionnez un token à trader</div>
                 <div class="token-grid" id="tokenGrid"></div>
-            </div>
-            
-            <!-- GRAPHIQUES PRIX -->
-            <div class="card wide">
-                <h2>📈 Prix Temps Réel (MAJ toutes les 10s)</h2>
-                <div class="chart-container">
-                    <canvas id="priceChart"></canvas>
-                </div>
             </div>
             
             <!-- SIGNAUX -->
@@ -191,8 +147,8 @@
                 <div id="botStatus" class="status ko">🛑 Bot Arrêté</div>
                 
                 <div class="input-group">
-                    <label>💰 Montant Total par Trade</label>
-                    <input type="number" id="amount" value="0.04" min="0.001" step="0.001">
+                    <label>💰 Montant par Trade</label>
+                    <input type="number" id="amount" value="0.01" min="0.001" step="0.001">
                 </div>
                 
                 <div class="input-group">
@@ -205,10 +161,10 @@
                     <input type="number" id="interval" value="300" min="180" step="60">
                 </div>
                 
-                <button class="btn btn-warning" id="approveBtn">✅ Approuver Tokens</button>
+                <button class="btn btn-warning" id="approveBtn">✅ Approuver Token</button>
                 <button class="btn btn-premium" id="analyzeBtn">🔍 Analyser</button>
-                <button class="btn btn-success" id="buyBtn">🟢 ACHETER Tokens</button>
-                <button class="btn btn-danger" id="sellBtn">🔴 VENDRE Tokens</button>
+                <button class="btn btn-success" id="buyBtn">🟢 ACHETER Token</button>
+                <button class="btn btn-danger" id="sellBtn">🔴 VENDRE Token</button>
                 <button class="btn btn-success" id="startBtn">▶️ Bot Auto</button>
                 <button class="btn btn-danger" id="stopBtn" style="display:none;">⏹️ Arrêter</button>
                 
@@ -345,12 +301,9 @@ const app = {
     provider: null,
     signer: null,
     running: false,
-    selectedTokens: [null, null, null, null],
+    selectedToken: null,
     stats: { signals: 0, buys: 0, sells: 0 },
-    signals: { rsi: 50, ma: 'neutral', volume: 'normal' },
-    priceHistory: [{}, {}, {}, {}],
-    priceChart: null,
-    priceUpdateInterval: null
+    signals: { rsi: 50, ma: 'neutral', volume: 'normal' }
 };
 
 function log(msg, type = 'info') {
@@ -423,12 +376,6 @@ async function switchChain(chainId) {
         app.chainId = chainId;
         highlightChain();
         loadTokens();
-        
-        app.selectedTokens = [null, null, null, null];
-        app.priceHistory = [{}, {}, {}, {}];
-        updateTokenSlots();
-        stopPriceUpdates();
-        
         await loadBalances();
         log('✅ ' + CONFIG.chains[chainId].name, 'ok');
     } catch (err) {
@@ -446,10 +393,6 @@ function loadTokens() {
         btn.className = 'token-item';
         btn.textContent = token.symbol;
         btn.onclick = () => selectToken(token);
-        
-        const isSelected = app.selectedTokens.some(t => t && t.symbol === token.symbol);
-        if (isSelected) btn.classList.add('selected');
-        
         grid.appendChild(btn);
     });
     
@@ -457,89 +400,17 @@ function loadTokens() {
 }
 
 function selectToken(token) {
-    const emptySlot = app.selectedTokens.findIndex(t => t === null);
+    app.selectedToken = token;
     
-    if (emptySlot === -1) {
-        log('⚠️ 4 tokens max! Retirez-en un d\'abord', 'warning');
-        return;
-    }
+    document.querySelectorAll('.token-item').forEach(item => {
+        item.classList.toggle('selected', item.textContent === token.symbol);
+    });
     
-    const alreadySelected = app.selectedTokens.some(t => t && t.symbol === token.symbol);
-    if (alreadySelected) {
-        log('⚠️ Token déjà sélectionné', 'warning');
-        return;
-    }
-    
-    app.selectedTokens[emptySlot] = token;
-    app.priceHistory[emptySlot] = {};
-    
-    updateTokenSlots();
-    loadTokens();
-    
-    const count = app.selectedTokens.filter(t => t !== null).length;
     document.getElementById('tokenStatus').className = 'status ok';
-    document.getElementById('tokenStatus').textContent = '✅ ' + count + ' token(s) sélectionné(s)';
+    document.getElementById('tokenStatus').textContent = '✅ Token: ' + token.symbol;
     
-    log('🎯 Token ajouté: ' + token.symbol + ' (Slot ' + (emptySlot + 1) + ')', 'premium');
-    
+    log('🎯 Token sélectionné: ' + token.symbol, 'premium');
     loadBalances();
-    startPriceUpdates();
-}
-
-function removeToken(slotIndex) {
-    const token = app.selectedTokens[slotIndex];
-    if (!token) return;
-    
-    log('🗑️ Retrait: ' + token.symbol, 'warning');
-    
-    app.selectedTokens[slotIndex] = null;
-    app.priceHistory[slotIndex] = {};
-    
-    updateTokenSlots();
-    loadTokens();
-    
-    const count = app.selectedTokens.filter(t => t !== null).length;
-    if (count === 0) {
-        document.getElementById('tokenStatus').className = 'status premium';
-        document.getElementById('tokenStatus').textContent = 'Sélectionnez jusqu\'à 4 tokens';
-        stopPriceUpdates();
-    } else {
-        document.getElementById('tokenStatus').textContent = '✅ ' + count + ' token(s) sélectionné(s)';
-    }
-    
-    loadBalances();
-    updateChart();
-}
-
-function updateTokenSlots() {
-    for (let i = 0; i < 4; i++) {
-        const slot = document.getElementById('slot' + i);
-        const token = app.selectedTokens[i];
-        
-        if (token) {
-            slot.className = 'token-slot filled';
-            slot.innerHTML = `
-                <div class="token-name">${token.symbol}</div>
-                <div class="token-price" id="price${i}">Chargement...</div>
-            `;
-            
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-btn';
-            removeBtn.textContent = '✕ Retirer';
-            removeBtn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                removeToken(i);
-            };
-            slot.appendChild(removeBtn);
-        } else {
-            slot.className = 'token-slot';
-            slot.innerHTML = `
-                <span style="font-size: 2em;">➕</span>
-                <span style="color: #64748b; font-weight: 600;">Slot ${i + 1}</span>
-            `;
-        }
-    }
 }
 
 async function loadBalances() {
@@ -558,16 +429,12 @@ async function loadBalances() {
         const usdtFormatted = parseFloat(ethers.utils.formatUnits(usdtBal, chain.usdtDecimals));
         document.getElementById('usdtBal').textContent = fmt(usdtFormatted, 2);
         
-        let totalTokenValue = 0;
-        for (let i = 0; i < 4; i++) {
-            if (app.selectedTokens[i]) {
-                const token = new ethers.Contract(app.selectedTokens[i].address, ERC20_ABI, app.provider);
-                const tokenBal = await token.balanceOf(app.address);
-                const tokenFormatted = parseFloat(ethers.utils.formatUnits(tokenBal, app.selectedTokens[i].decimals));
-                totalTokenValue += tokenFormatted;
-            }
+        if(app.selectedToken) {
+            const token = new ethers.Contract(app.selectedToken.address, ERC20_ABI, app.provider);
+            const tokenBal = await token.balanceOf(app.address);
+            const tokenFormatted = parseFloat(ethers.utils.formatUnits(tokenBal, app.selectedToken.decimals));
+            document.getElementById('tokenBal').textContent = fmt(tokenFormatted, 4);
         }
-        document.getElementById('tokenBal').textContent = fmt(totalTokenValue, 4);
         
         log('💰 Balances MAJ', 'ok');
         
@@ -577,103 +444,95 @@ async function loadBalances() {
 }
 
 async function approveToken() {
-    const tokens = app.selectedTokens.filter(t => t !== null);
-    if (tokens.length === 0) {
-        log('❌ Sélectionnez au moins un token', 'ko');
+    if (!app.selectedToken) {
+        log('❌ Sélectionnez un token', 'ko');
         return;
     }
     
     const chain = CONFIG.chains[app.chainId];
     
-    for (const token of tokens) {
-        try {
+    try {
+        log('═══════════════════════════════', 'premium');
+        log('✅ APPROBATION ' + app.selectedToken.symbol, 'premium');
+        
+        const token = new ethers.Contract(app.selectedToken.address, ERC20_ABI, app.signer);
+        const currentAllowance = await token.allowance(app.address, chain.router);
+        const allowanceFormatted = parseFloat(ethers.utils.formatUnits(currentAllowance, app.selectedToken.decimals));
+        
+        log('💰 Allowance: ' + fmt(allowanceFormatted, 2), 'info');
+        
+        if (allowanceFormatted > 10000) {
+            log('✅ Déjà approuvé', 'ok');
             log('═══════════════════════════════', 'premium');
-            log('✅ APPROBATION ' + token.symbol, 'premium');
-            
-            const tokenContract = new ethers.Contract(token.address, ERC20_ABI, app.signer);
-            const currentAllowance = await tokenContract.allowance(app.address, chain.router);
-            const allowanceFormatted = parseFloat(ethers.utils.formatUnits(currentAllowance, token.decimals));
-            
-            log('💰 Allowance: ' + fmt(allowanceFormatted, 2), 'info');
-            
-            if (allowanceFormatted > 10000) {
-                log('✅ ' + token.symbol + ' déjà approuvé', 'ok');
-                continue;
-            }
-            
-            log('📝 Approbation ' + token.symbol + '...', 'warning');
-            log('⏳ Confirmez MetaMask', 'warning');
-            
-            const tx = await tokenContract.approve(chain.router, ethers.constants.MaxUint256);
-            log('✅ TX: ' + tx.hash, 'ok');
-            log('⏳ Confirmation...', 'info');
-            
-            await tx.wait();
-            
-            log('✅ ' + token.symbol + ' APPROUVÉ!', 'ok');
-            
-        } catch (err) {
-            log('❌ ' + token.symbol + ': ' + err.message, 'ko');
+            return;
         }
+        
+        log('📝 Approbation...', 'warning');
+        log('⏳ Confirmez MetaMask', 'warning');
+        
+        const tx = await token.approve(chain.router, ethers.constants.MaxUint256);
+        log('✅ TX envoyée: ' + tx.hash, 'ok');
+        log('⏳ Confirmation...', 'info');
+        
+        await tx.wait();
+        
+        log('✅ APPROUVÉ!', 'ok');
+        log('💰 ' + app.selectedToken.symbol + ' prêt', 'ok');
+        log('═══════════════════════════════', 'premium');
+        
+    } catch (err) {
+        log('❌ ' + err.message, 'ko');
     }
-    
-    log('═══════════════════════════════', 'premium');
 }
 
 async function analyzeSignals() {
-    const tokens = app.selectedTokens.filter(t => t !== null);
-    if (tokens.length === 0) {
-        log('❌ Aucun token sélectionné', 'ko');
-        return 'HOLD';
-    }
-    
     try {
         log('═══════════════════════════════', 'premium');
-        log('🔍 ANALYSE ' + tokens.length + ' TOKEN(S)', 'premium');
+        log('🔍 ANALYSE ' + (app.selectedToken?.symbol || 'TOKEN'), 'premium');
         
         document.getElementById('signalStatus').className = 'status premium';
         document.getElementById('signalStatus').textContent = '🔍 Analyse...';
         
-        const rsi = 25 + Math.random() * 50;
+        const rsi = 30 + Math.random() * 40;
         app.signals.rsi = rsi;
         
         let rsiSignal = 'neutral';
-        if (rsi < 35) rsiSignal = 'oversold';
-        if (rsi > 65) rsiSignal = 'overbought';
+        if (rsi < 30) rsiSignal = 'oversold';
+        if (rsi > 70) rsiSignal = 'overbought';
         
         log('📊 RSI: ' + fmt(rsi, 1), 'info');
         
-        const maSignal = Math.random() > 0.6 ? 'bullish' : (Math.random() > 0.4 ? 'bearish' : 'neutral');
+        const maSignal = Math.random() > 0.7 ? 'bullish' : (Math.random() > 0.5 ? 'bearish' : 'neutral');
         app.signals.ma = maSignal;
         log('📈 MA: ' + maSignal.toUpperCase(), 'info');
         
-        const volumeSignal = Math.random() > 0.5 ? 'high' : 'normal';
+        const volumeSignal = Math.random() > 0.6 ? 'high' : 'normal';
         app.signals.volume = volumeSignal;
         log('📊 Volume: ' + volumeSignal.toUpperCase(), 'info');
         
         updateSignalUI();
         
         const buyScore = 
-            (rsiSignal === 'oversold' ? 2 : 0) +
+            (rsiSignal === 'oversold' ? 3 : 0) +
             (maSignal === 'bullish' ? 2 : 0) +
             (volumeSignal === 'high' ? 1 : 0);
         
         const sellScore =
-            (rsiSignal === 'overbought' ? 2 : 0) +
+            (rsiSignal === 'overbought' ? 3 : 0) +
             (maSignal === 'bearish' ? 2 : 0);
         
-        log('💯 Score ACHAT: ' + buyScore + '/5', 'info');
-        log('💯 Score VENTE: ' + sellScore + '/4', 'info');
+        log('💯 Score ACHAT: ' + buyScore + '/6', 'info');
+        log('💯 Score VENTE: ' + sellScore + '/5', 'info');
         
         let decision = 'HOLD';
         
-        if (buyScore >= 3) {
+        if (buyScore >= 4) {
             decision = 'BUY';
             log('🟢 SIGNAL ACHAT!', 'ok');
             document.getElementById('signalStatus').className = 'status ok';
             document.getElementById('signalStatus').textContent = '🟢 Signal ACHAT';
             app.stats.signals++;
-        } else if (sellScore >= 3) {
+        } else if (sellScore >= 4) {
             decision = 'SELL';
             log('🔴 SIGNAL VENTE!', 'warning');
             document.getElementById('signalStatus').className = 'status warning';
@@ -706,10 +565,10 @@ function updateSignalUI() {
     const rsiText = document.getElementById('rsiText');
     rsiText.textContent = 'RSI (14): ' + fmt(rsi, 1);
     
-    if (rsi < 35) {
+    if (rsi < 30) {
         rsiDot.className = 'indicator-dot bullish';
         rsiText.textContent += ' - SURVENDU (Achat)';
-    } else if (rsi > 65) {
+    } else if (rsi > 70) {
         rsiDot.className = 'indicator-dot bearish';
         rsiText.textContent += ' - SURACHETÉ (Vente)';
     } else {
@@ -744,145 +603,141 @@ function updateSignalUI() {
 }
 
 async function buyToken() {
-    const tokens = app.selectedTokens.filter(t => t !== null);
-    if (tokens.length === 0) {
-        log('❌ Sélectionnez au moins un token', 'ko');
+    if (!app.selectedToken) {
+        log('❌ Sélectionnez token', 'ko');
         return;
     }
     
     const chain = CONFIG.chains[app.chainId];
-    const amount = parseFloat(document.getElementById('amount').value);
+    const amount = document.getElementById('amount').value;
     const slippage = parseFloat(document.getElementById('slippage').value);
-    const amountPerToken = amount / tokens.length;
     
-    for (const token of tokens) {
-        try {
-            log('═══════════════════════════════', 'ok');
-            log('🟢 ACHAT ' + token.symbol, 'ok');
-            log('💵 ' + fmt(amountPerToken, 6) + ' ' + chain.symbol, 'info');
-            
-            const bal = await app.provider.getBalance(app.address);
-            if (parseFloat(ethers.utils.formatEther(bal)) < amount) {
-                log('❌ Balance insuffisante', 'ko');
-                continue;
-            }
-            
-            const amountWei = ethers.utils.parseEther(amountPerToken.toString());
-            const router = new ethers.Contract(chain.router, ROUTER_ABI, app.provider);
-            const path = [chain.weth, token.address];
-            
-            log('🔍 Quote...', 'info');
-            
-            let amounts = await router.getAmountsOut(amountWei, path);
-            const amountOut = amounts[1];
-            const amountOutFormatted = parseFloat(ethers.utils.formatUnits(amountOut, token.decimals));
-            
-            log('💰 ~' + fmt(amountOutFormatted, 4) + ' ' + token.symbol, 'ok');
-            
-            const slippageFactor = (100 - slippage) / 100;
-            const amountOutMin = amountOut.mul(Math.floor(slippageFactor * 100)).div(100);
-            
-            const deadline = Math.floor(Date.now() / 1000) + 1200;
-            const routerWithSigner = router.connect(app.signer);
-            
-            log('📝 Transaction...', 'warning');
-            
-            const tx = await routerWithSigner.swapExactETHForTokens(
-                amountOutMin, path, app.address, deadline,
-                { value: amountWei }
-            );
-            
-            log('✅ TX: ' + tx.hash, 'ok');
-            log('⏳ Confirmation...', 'info');
-            
-            await tx.wait();
-            
-            log('✅ ' + token.symbol + ' ACHETÉ!', 'ok');
-            
-            app.stats.buys++;
-            document.getElementById('buyCount').textContent = app.stats.buys;
-            
-        } catch (err) {
-            log('❌ ' + token.symbol + ': ' + err.message, 'ko');
+    try {
+        log('═══════════════════════════════', 'ok');
+        log('🟢 ACHAT ' + app.selectedToken.symbol, 'ok');
+        log('💵 ' + amount + ' ' + chain.symbol, 'info');
+        
+        const bal = await app.provider.getBalance(app.address);
+        if (parseFloat(ethers.utils.formatEther(bal)) < parseFloat(amount)) {
+            log('❌ Balance insuffisante', 'ko');
+            return;
         }
+        
+        const amountWei = ethers.utils.parseEther(amount);
+        const router = new ethers.Contract(chain.router, ROUTER_ABI, app.provider);
+        const path = [chain.weth, app.selectedToken.address];
+        
+        log('🔍 Quote...', 'info');
+        
+        let amounts = await router.getAmountsOut(amountWei, path);
+        const amountOut = amounts[1];
+        const amountOutFormatted = parseFloat(ethers.utils.formatUnits(amountOut, app.selectedToken.decimals));
+        
+        log('💰 ~' + fmt(amountOutFormatted, 4) + ' ' + app.selectedToken.symbol, 'ok');
+        
+        const slippageFactor = (100 - slippage) / 100;
+        const amountOutMin = amountOut.mul(Math.floor(slippageFactor * 100)).div(100);
+        
+        const deadline = Math.floor(Date.now() / 1000) + 1200;
+        const routerWithSigner = router.connect(app.signer);
+        
+        log('📝 Transaction...', 'warning');
+        
+        const tx = await routerWithSigner.swapExactETHForTokens(
+            amountOutMin, path, app.address, deadline,
+            { value: amountWei }
+        );
+        
+        log('✅ TX: ' + tx.hash, 'ok');
+        log('⏳ Confirmation...', 'info');
+        
+        await tx.wait();
+        
+        log('✅ ACHAT CONFIRMÉ!', 'ok');
+        log('🎉 ' + app.selectedToken.symbol + ' reçu', 'ok');
+        
+        app.stats.buys++;
+        document.getElementById('buyCount').textContent = app.stats.buys;
+        
+        setTimeout(() => loadBalances(), 5000);
+        
+        log('═══════════════════════════════', 'ok');
+        
+    } catch (err) {
+        log('❌ ' + err.message, 'ko');
     }
-    
-    setTimeout(() => loadBalances(), 5000);
-    log('═══════════════════════════════', 'ok');
 }
 
 async function sellToken() {
-    const tokens = app.selectedTokens.filter(t => t !== null);
-    if (tokens.length === 0) {
-        log('❌ Sélectionnez au moins un token', 'ko');
+    if (!app.selectedToken) {
+        log('❌ Sélectionnez token', 'ko');
         return;
     }
     
     const chain = CONFIG.chains[app.chainId];
     const slippage = parseFloat(document.getElementById('slippage').value);
     
-    for (const token of tokens) {
-        try {
-            log('═══════════════════════════════', 'warning');
-            log('🔴 VENTE ' + token.symbol, 'warning');
-            
-            const tokenContract = new ethers.Contract(token.address, ERC20_ABI, app.provider);
-            const tokenBal = await tokenContract.balanceOf(app.address);
-            const tokenFormatted = parseFloat(ethers.utils.formatUnits(tokenBal, token.decimals));
-            
-            if (tokenFormatted < 0.0001) {
-                log('⚠️ Pas de ' + token.symbol, 'warning');
-                continue;
-            }
-            
-            log('💰 Vente: ' + fmt(tokenFormatted, 4) + ' ' + token.symbol, 'info');
-            
-            const router = new ethers.Contract(chain.router, ROUTER_ABI, app.provider);
-            const path = [token.address, chain.weth];
-            
-            log('🔍 Quote...', 'info');
-            
-            let amounts = await router.getAmountsOut(tokenBal, path);
-            const amountOut = amounts[1];
-            const amountOutFormatted = parseFloat(ethers.utils.formatEther(amountOut));
-            
-            log('💰 ~' + fmt(amountOutFormatted, 6) + ' ' + chain.symbol, 'ok');
-            
-            const slippageFactor = (100 - slippage) / 100;
-            const amountOutMin = amountOut.mul(Math.floor(slippageFactor * 100)).div(100);
-            
-            const deadline = Math.floor(Date.now() / 1000) + 1200;
-            const routerWithSigner = router.connect(app.signer);
-            
-            log('📝 Transaction...', 'warning');
-            
-            const tx = await routerWithSigner.swapExactTokensForETH(
-                tokenBal, amountOutMin, path, app.address, deadline
-            );
-            
-            log('✅ TX: ' + tx.hash, 'ok');
-            log('⏳ Confirmation...', 'info');
-            
-            await tx.wait();
-            
-            log('✅ ' + token.symbol + ' VENDU!', 'ok');
-            
-            app.stats.sells++;
-            document.getElementById('sellCount').textContent = app.stats.sells;
-            
-        } catch (err) {
-            log('❌ ' + token.symbol + ': ' + err.message, 'ko');
+    try {
+        log('═══════════════════════════════', 'warning');
+        log('🔴 VENTE ' + app.selectedToken.symbol, 'warning');
+        
+        const token = new ethers.Contract(app.selectedToken.address, ERC20_ABI, app.provider);
+        const tokenBal = await token.balanceOf(app.address);
+        const tokenFormatted = parseFloat(ethers.utils.formatUnits(tokenBal, app.selectedToken.decimals));
+        
+        if (tokenFormatted < 0.0001) {
+            log('❌ Pas de ' + app.selectedToken.symbol, 'ko');
+            return;
         }
+        
+        log('💰 Vente: ' + fmt(tokenFormatted, 4) + ' ' + app.selectedToken.symbol, 'info');
+        
+        const router = new ethers.Contract(chain.router, ROUTER_ABI, app.provider);
+        const path = [app.selectedToken.address, chain.weth];
+        
+        log('🔍 Quote...', 'info');
+        
+        let amounts = await router.getAmountsOut(tokenBal, path);
+        const amountOut = amounts[1];
+        const amountOutFormatted = parseFloat(ethers.utils.formatEther(amountOut));
+        
+        log('💰 ~' + fmt(amountOutFormatted, 6) + ' ' + chain.symbol, 'ok');
+        
+        const slippageFactor = (100 - slippage) / 100;
+        const amountOutMin = amountOut.mul(Math.floor(slippageFactor * 100)).div(100);
+        
+        const deadline = Math.floor(Date.now() / 1000) + 1200;
+        const routerWithSigner = router.connect(app.signer);
+        
+        log('📝 Transaction...', 'warning');
+        
+        const tx = await routerWithSigner.swapExactTokensForETH(
+            tokenBal, amountOutMin, path, app.address, deadline
+        );
+        
+        log('✅ TX: ' + tx.hash, 'ok');
+        log('⏳ Confirmation...', 'info');
+        
+        await tx.wait();
+        
+        log('✅ VENTE CONFIRMÉE!', 'ok');
+        log('🎉 ' + chain.symbol + ' reçu', 'ok');
+        
+        app.stats.sells++;
+        document.getElementById('sellCount').textContent = app.stats.sells;
+        
+        setTimeout(() => loadBalances(), 5000);
+        
+        log('═══════════════════════════════', 'warning');
+        
+    } catch (err) {
+        log('❌ ' + err.message, 'ko');
     }
-    
-    setTimeout(() => loadBalances(), 5000);
-    log('═══════════════════════════════', 'warning');
 }
 
 async function startBot() {
-    const tokens = app.selectedTokens.filter(t => t !== null);
-    if (!app.provider || tokens.length === 0) {
-        log('❌ Connectez wallet et sélectionnez au moins un token', 'ko');
+    if (!app.provider || !app.selectedToken) {
+        log('❌ Connectez wallet et sélectionnez token', 'ko');
         return;
     }
     
@@ -895,8 +750,7 @@ async function startBot() {
     
     log('═══════════════════════════════', 'ok');
     log('🤖 BOT DÉMARRÉ', 'ok');
-    log('🎯 ' + tokens.length + ' tokens actifs', 'premium');
-    tokens.forEach(t => log('   • ' + t.symbol, 'info'));
+    log('🎯 Token: ' + app.selectedToken.symbol, 'premium');
     log('⏱️ Trading sur signaux', 'premium');
     log('═══════════════════════════════', 'ok');
     
@@ -941,160 +795,6 @@ async function botLoop() {
     setTimeout(botLoop, interval);
 }
 
-async function updateTokenPrices() {
-    if (!app.provider) return;
-    
-    const chain = CONFIG.chains[app.chainId];
-    if (!chain) return;
-    
-    const router = new ethers.Contract(chain.router, ROUTER_ABI, app.provider);
-    const usdt = new ethers.Contract(chain.usdt, ERC20_ABI, app.provider);
-    
-    for (let i = 0; i < 4; i++) {
-        const token = app.selectedTokens[i];
-        if (!token) continue;
-        
-        try {
-            const amountIn = ethers.utils.parseUnits('1', token.decimals);
-            const path = [token.address, chain.usdt];
-            
-            const amounts = await router.getAmountsOut(amountIn, path);
-            const priceInUSDT = parseFloat(ethers.utils.formatUnits(amounts[1], chain.usdtDecimals));
-            
-            const priceElement = document.getElementById('price' + i);
-            if (priceElement) {
-                if (priceInUSDT < 0.01) {
-                    priceElement.textContent = '
-
-function initChart() {
-    const ctx = document.getElementById('priceChart').getContext('2d');
-    
-    app.priceChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            datasets: []
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        font: { size: 14, weight: 'bold' },
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                },
-                title: {
-                    display: true,
-                    text: 'Prix Tokens en Temps Réel (pour 1 ' + (CONFIG.chains[app.chainId]?.symbol || 'Token') + ')',
-                    font: { size: 16, weight: 'bold' },
-                    padding: 20
-                }
-            },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'minute',
-                        displayFormats: {
-                            minute: 'HH:mm'
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Temps',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Quantité de Tokens',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                }
-            }
-        }
-    });
-}
-
-function updateChart() {
-    if (!app.priceChart) return;
-    
-    const colors = [
-        { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
-        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
-        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
-        { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
-    ];
-    
-    const datasets = [];
-    
-    for (let i = 0; i < 4; i++) {
-        const token = app.selectedTokens[i];
-        if (!token || !app.priceHistory[i][token.symbol]) continue;
-        
-        const data = app.priceHistory[i][token.symbol].map(point => ({
-            x: point.time,
-            y: point.price
-        }));
-        
-        if (data.length === 0) continue;
-        
-        datasets.push({
-            label: token.symbol,
-            data: data,
-            borderColor: colors[i].border,
-            backgroundColor: colors[i].bg,
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 3,
-            pointHoverRadius: 6
-        });
-    }
-    
-    app.priceChart.data.datasets = datasets;
-    
-    if (app.chainId && CONFIG.chains[app.chainId]) {
-        app.priceChart.options.plugins.title.text = 'Prix Tokens en Temps Réel (pour 1 ' + CONFIG.chains[app.chainId].symbol + ')';
-    }
-    
-    app.priceChart.update('none');
-}
-
-function startPriceUpdates() {
-    if (app.priceUpdateInterval) return;
-    
-    updateTokenPrices();
-    
-    app.priceUpdateInterval = setInterval(updateTokenPrices, 10000);
-    
-    log('📊 Mise à jour prix: toutes les 10s', 'ok');
-}
-
-function stopPriceUpdates() {
-    if (app.priceUpdateInterval) {
-        clearInterval(app.priceUpdateInterval);
-        app.priceUpdateInterval = null;
-        log('⏸️ Arrêt mise à jour prix', 'info');
-    }
-}
-
-window.removeToken = removeToken;
-
 window.onload = function() {
     const grid = document.getElementById('chainGrid');
     Object.entries(CONFIG.chains).forEach(([id, chain]) => {
@@ -1102,64 +802,17 @@ window.onload = function() {
         btn.className = 'chain-btn';
         btn.textContent = chain.name;
         btn.dataset.chainId = id;
-        btn.type = 'button';
-        btn.onclick = function(e) {
-            e.preventDefault();
-            switchChain(parseInt(id));
-        };
+        btn.onclick = () => switchChain(parseInt(id));
         grid.appendChild(btn);
     });
     
-    const connectBtn = document.getElementById('connectBtn');
-    connectBtn.type = 'button';
-    connectBtn.onclick = function(e) {
-        e.preventDefault();
-        connectWallet();
-    };
-    
-    const approveBtn = document.getElementById('approveBtn');
-    approveBtn.type = 'button';
-    approveBtn.onclick = function(e) {
-        e.preventDefault();
-        approveToken();
-    };
-    
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    analyzeBtn.type = 'button';
-    analyzeBtn.onclick = function(e) {
-        e.preventDefault();
-        analyzeSignals();
-    };
-    
-    const buyBtn = document.getElementById('buyBtn');
-    buyBtn.type = 'button';
-    buyBtn.onclick = function(e) {
-        e.preventDefault();
-        buyToken();
-    };
-    
-    const sellBtn = document.getElementById('sellBtn');
-    sellBtn.type = 'button';
-    sellBtn.onclick = function(e) {
-        e.preventDefault();
-        sellToken();
-    };
-    
-    const startBtn = document.getElementById('startBtn');
-    startBtn.type = 'button';
-    startBtn.onclick = function(e) {
-        e.preventDefault();
-        startBot();
-    };
-    
-    const stopBtn = document.getElementById('stopBtn');
-    stopBtn.type = 'button';
-    stopBtn.onclick = function(e) {
-        e.preventDefault();
-        stopBot();
-    };
-    
-    initChart();
+    document.getElementById('connectBtn').onclick = connectWallet;
+    document.getElementById('approveBtn').onclick = approveToken;
+    document.getElementById('analyzeBtn').onclick = analyzeSignals;
+    document.getElementById('buyBtn').onclick = buyToken;
+    document.getElementById('sellBtn').onclick = sellToken;
+    document.getElementById('startBtn').onclick = startBot;
+    document.getElementById('stopBtn').onclick = stopBot;
     
     if (window.ethereum) {
         window.ethereum.on('accountsChanged', accounts => {
@@ -1169,1405 +822,16 @@ window.onload = function() {
     }
     
     log('═══════════════════════════════', 'premium');
-    log('🎯 BOT MULTI-TOKENS v4.0', 'premium');
-    log('⚡ 4 TOKENS SIMULTANÉS', 'premium');
-    log('📊 PRIX TEMPS RÉEL', 'premium');
+    log('🎯 BOT TOP 100 TOKENS v3.0', 'premium');
+    log('⚡ ACHAT & VENTE Automatique', 'premium');
     log('═══════════════════════════════', 'premium');
     log('', 'info');
-    log('📋 BLOCKCHAINS:', 'info');
+    log('📋 TOKENS:', 'info');
     log('• Ethereum: 15 tokens TOP', 'info');
     log('• BSC: 15 tokens TOP', 'info');
     log('• Polygon: 15 tokens TOP', 'info');
     log('', 'info');
-    log('🚀 Connectez MetaMask pour commencer!', 'ok');
-};
-    </script>
-</body>
-</html>
-         + priceInUSDT.toFixed(8);
-                } else if (priceInUSDT < 1) {
-                    priceElement.textContent = '
-
-function initChart() {
-    const ctx = document.getElementById('priceChart').getContext('2d');
-    
-    app.priceChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            datasets: []
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        font: { size: 14, weight: 'bold' },
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                },
-                title: {
-                    display: true,
-                    text: 'Prix Tokens en Temps Réel (pour 1 ' + (CONFIG.chains[app.chainId]?.symbol || 'Token') + ')',
-                    font: { size: 16, weight: 'bold' },
-                    padding: 20
-                }
-            },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'minute',
-                        displayFormats: {
-                            minute: 'HH:mm'
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Temps',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Quantité de Tokens',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                }
-            }
-        }
-    });
-}
-
-function updateChart() {
-    if (!app.priceChart) return;
-    
-    const colors = [
-        { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
-        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
-        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
-        { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
-    ];
-    
-    const datasets = [];
-    
-    for (let i = 0; i < 4; i++) {
-        const token = app.selectedTokens[i];
-        if (!token || !app.priceHistory[i][token.symbol]) continue;
-        
-        const data = app.priceHistory[i][token.symbol].map(point => ({
-            x: point.time,
-            y: point.price
-        }));
-        
-        if (data.length === 0) continue;
-        
-        datasets.push({
-            label: token.symbol,
-            data: data,
-            borderColor: colors[i].border,
-            backgroundColor: colors[i].bg,
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 3,
-            pointHoverRadius: 6
-        });
-    }
-    
-    app.priceChart.data.datasets = datasets;
-    
-    if (app.chainId && CONFIG.chains[app.chainId]) {
-        app.priceChart.options.plugins.title.text = 'Prix Tokens en Temps Réel (pour 1 ' + CONFIG.chains[app.chainId].symbol + ')';
-    }
-    
-    app.priceChart.update('none');
-}
-
-function startPriceUpdates() {
-    if (app.priceUpdateInterval) return;
-    
-    updateTokenPrices();
-    
-    app.priceUpdateInterval = setInterval(updateTokenPrices, 10000);
-    
-    log('📊 Mise à jour prix: toutes les 10s', 'ok');
-}
-
-function stopPriceUpdates() {
-    if (app.priceUpdateInterval) {
-        clearInterval(app.priceUpdateInterval);
-        app.priceUpdateInterval = null;
-        log('⏸️ Arrêt mise à jour prix', 'info');
-    }
-}
-
-window.removeToken = removeToken;
-
-window.onload = function() {
-    const grid = document.getElementById('chainGrid');
-    Object.entries(CONFIG.chains).forEach(([id, chain]) => {
-        const btn = document.createElement('button');
-        btn.className = 'chain-btn';
-        btn.textContent = chain.name;
-        btn.dataset.chainId = id;
-        btn.type = 'button';
-        btn.onclick = function(e) {
-            e.preventDefault();
-            switchChain(parseInt(id));
-        };
-        grid.appendChild(btn);
-    });
-    
-    const connectBtn = document.getElementById('connectBtn');
-    connectBtn.type = 'button';
-    connectBtn.onclick = function(e) {
-        e.preventDefault();
-        connectWallet();
-    };
-    
-    const approveBtn = document.getElementById('approveBtn');
-    approveBtn.type = 'button';
-    approveBtn.onclick = function(e) {
-        e.preventDefault();
-        approveToken();
-    };
-    
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    analyzeBtn.type = 'button';
-    analyzeBtn.onclick = function(e) {
-        e.preventDefault();
-        analyzeSignals();
-    };
-    
-    const buyBtn = document.getElementById('buyBtn');
-    buyBtn.type = 'button';
-    buyBtn.onclick = function(e) {
-        e.preventDefault();
-        buyToken();
-    };
-    
-    const sellBtn = document.getElementById('sellBtn');
-    sellBtn.type = 'button';
-    sellBtn.onclick = function(e) {
-        e.preventDefault();
-        sellToken();
-    };
-    
-    const startBtn = document.getElementById('startBtn');
-    startBtn.type = 'button';
-    startBtn.onclick = function(e) {
-        e.preventDefault();
-        startBot();
-    };
-    
-    const stopBtn = document.getElementById('stopBtn');
-    stopBtn.type = 'button';
-    stopBtn.onclick = function(e) {
-        e.preventDefault();
-        stopBot();
-    };
-    
-    initChart();
-    
-    if (window.ethereum) {
-        window.ethereum.on('accountsChanged', accounts => {
-            if (accounts.length > 0) connectWallet();
-        });
-        window.ethereum.on('chainChanged', () => window.location.reload());
-    }
-    
-    log('═══════════════════════════════', 'premium');
-    log('🎯 BOT MULTI-TOKENS v4.0', 'premium');
-    log('⚡ 4 TOKENS SIMULTANÉS', 'premium');
-    log('📊 PRIX TEMPS RÉEL', 'premium');
-    log('═══════════════════════════════', 'premium');
-    log('', 'info');
-    log('📋 BLOCKCHAINS:', 'info');
-    log('• Ethereum: 15 tokens TOP', 'info');
-    log('• BSC: 15 tokens TOP', 'info');
-    log('• Polygon: 15 tokens TOP', 'info');
-    log('', 'info');
-    log('🚀 Connectez MetaMask pour commencer!', 'ok');
-};
-    </script>
-</body>
-</html>
-         + priceInUSDT.toFixed(4);
-                } else {
-                    priceElement.textContent = '
-
-function initChart() {
-    const ctx = document.getElementById('priceChart').getContext('2d');
-    
-    app.priceChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            datasets: []
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        font: { size: 14, weight: 'bold' },
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                },
-                title: {
-                    display: true,
-                    text: 'Prix Tokens en Temps Réel (pour 1 ' + (CONFIG.chains[app.chainId]?.symbol || 'Token') + ')',
-                    font: { size: 16, weight: 'bold' },
-                    padding: 20
-                }
-            },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'minute',
-                        displayFormats: {
-                            minute: 'HH:mm'
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Temps',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Quantité de Tokens',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                }
-            }
-        }
-    });
-}
-
-function updateChart() {
-    if (!app.priceChart) return;
-    
-    const colors = [
-        { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
-        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
-        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
-        { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
-    ];
-    
-    const datasets = [];
-    
-    for (let i = 0; i < 4; i++) {
-        const token = app.selectedTokens[i];
-        if (!token || !app.priceHistory[i][token.symbol]) continue;
-        
-        const data = app.priceHistory[i][token.symbol].map(point => ({
-            x: point.time,
-            y: point.price
-        }));
-        
-        if (data.length === 0) continue;
-        
-        datasets.push({
-            label: token.symbol,
-            data: data,
-            borderColor: colors[i].border,
-            backgroundColor: colors[i].bg,
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 3,
-            pointHoverRadius: 6
-        });
-    }
-    
-    app.priceChart.data.datasets = datasets;
-    
-    if (app.chainId && CONFIG.chains[app.chainId]) {
-        app.priceChart.options.plugins.title.text = 'Prix Tokens en Temps Réel (pour 1 ' + CONFIG.chains[app.chainId].symbol + ')';
-    }
-    
-    app.priceChart.update('none');
-}
-
-function startPriceUpdates() {
-    if (app.priceUpdateInterval) return;
-    
-    updateTokenPrices();
-    
-    app.priceUpdateInterval = setInterval(updateTokenPrices, 10000);
-    
-    log('📊 Mise à jour prix: toutes les 10s', 'ok');
-}
-
-function stopPriceUpdates() {
-    if (app.priceUpdateInterval) {
-        clearInterval(app.priceUpdateInterval);
-        app.priceUpdateInterval = null;
-        log('⏸️ Arrêt mise à jour prix', 'info');
-    }
-}
-
-window.removeToken = removeToken;
-
-window.onload = function() {
-    const grid = document.getElementById('chainGrid');
-    Object.entries(CONFIG.chains).forEach(([id, chain]) => {
-        const btn = document.createElement('button');
-        btn.className = 'chain-btn';
-        btn.textContent = chain.name;
-        btn.dataset.chainId = id;
-        btn.type = 'button';
-        btn.onclick = function(e) {
-            e.preventDefault();
-            switchChain(parseInt(id));
-        };
-        grid.appendChild(btn);
-    });
-    
-    const connectBtn = document.getElementById('connectBtn');
-    connectBtn.type = 'button';
-    connectBtn.onclick = function(e) {
-        e.preventDefault();
-        connectWallet();
-    };
-    
-    const approveBtn = document.getElementById('approveBtn');
-    approveBtn.type = 'button';
-    approveBtn.onclick = function(e) {
-        e.preventDefault();
-        approveToken();
-    };
-    
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    analyzeBtn.type = 'button';
-    analyzeBtn.onclick = function(e) {
-        e.preventDefault();
-        analyzeSignals();
-    };
-    
-    const buyBtn = document.getElementById('buyBtn');
-    buyBtn.type = 'button';
-    buyBtn.onclick = function(e) {
-        e.preventDefault();
-        buyToken();
-    };
-    
-    const sellBtn = document.getElementById('sellBtn');
-    sellBtn.type = 'button';
-    sellBtn.onclick = function(e) {
-        e.preventDefault();
-        sellToken();
-    };
-    
-    const startBtn = document.getElementById('startBtn');
-    startBtn.type = 'button';
-    startBtn.onclick = function(e) {
-        e.preventDefault();
-        startBot();
-    };
-    
-    const stopBtn = document.getElementById('stopBtn');
-    stopBtn.type = 'button';
-    stopBtn.onclick = function(e) {
-        e.preventDefault();
-        stopBot();
-    };
-    
-    initChart();
-    
-    if (window.ethereum) {
-        window.ethereum.on('accountsChanged', accounts => {
-            if (accounts.length > 0) connectWallet();
-        });
-        window.ethereum.on('chainChanged', () => window.location.reload());
-    }
-    
-    log('═══════════════════════════════', 'premium');
-    log('🎯 BOT MULTI-TOKENS v4.0', 'premium');
-    log('⚡ 4 TOKENS SIMULTANÉS', 'premium');
-    log('📊 PRIX TEMPS RÉEL', 'premium');
-    log('═══════════════════════════════', 'premium');
-    log('', 'info');
-    log('📋 BLOCKCHAINS:', 'info');
-    log('• Ethereum: 15 tokens TOP', 'info');
-    log('• BSC: 15 tokens TOP', 'info');
-    log('• Polygon: 15 tokens TOP', 'info');
-    log('', 'info');
-    log('🚀 Connectez MetaMask pour commencer!', 'ok');
-};
-    </script>
-</body>
-</html>
-         + priceInUSDT.toFixed(2);
-                }
-            }
-            
-            const timestamp = Date.now();
-            if (!app.priceHistory[i][token.symbol]) {
-                app.priceHistory[i][token.symbol] = [];
-            }
-            
-            app.priceHistory[i][token.symbol].push({
-                time: timestamp,
-                price: priceInUSDT
-            });
-            
-            if (app.priceHistory[i][token.symbol].length > 50) {
-                app.priceHistory[i][token.symbol].shift();
-            }
-            
-        } catch (err) {
-            console.error('Erreur prix ' + token.symbol, err);
-            
-            try {
-                const amountIn = ethers.utils.parseEther('1');
-                const pathViaWETH = [chain.weth, token.address];
-                const amounts = await router.getAmountsOut(amountIn, path);
-                const tokensPerETH = parseFloat(ethers.utils.formatUnits(amounts[1], token.decimals));
-                
-                const pathETHtoUSDT = [chain.weth, chain.usdt];
-                const amountsETH = await router.getAmountsOut(amountIn, pathETHtoUSDT);
-                const ethPriceUSDT = parseFloat(ethers.utils.formatUnits(amountsETH[1], chain.usdtDecimals));
-                
-                const priceInUSDT = ethPriceUSDT / tokensPerETH;
-                
-                const priceElement = document.getElementById('price' + i);
-                if (priceElement) {
-                    if (priceInUSDT < 0.01) {
-                        priceElement.textContent = '
-
-function initChart() {
-    const ctx = document.getElementById('priceChart').getContext('2d');
-    
-    app.priceChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            datasets: []
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        font: { size: 14, weight: 'bold' },
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                },
-                title: {
-                    display: true,
-                    text: 'Prix Tokens en Temps Réel (pour 1 ' + (CONFIG.chains[app.chainId]?.symbol || 'Token') + ')',
-                    font: { size: 16, weight: 'bold' },
-                    padding: 20
-                }
-            },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'minute',
-                        displayFormats: {
-                            minute: 'HH:mm'
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Temps',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Quantité de Tokens',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                }
-            }
-        }
-    });
-}
-
-function updateChart() {
-    if (!app.priceChart) return;
-    
-    const colors = [
-        { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
-        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
-        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
-        { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
-    ];
-    
-    const datasets = [];
-    
-    for (let i = 0; i < 4; i++) {
-        const token = app.selectedTokens[i];
-        if (!token || !app.priceHistory[i][token.symbol]) continue;
-        
-        const data = app.priceHistory[i][token.symbol].map(point => ({
-            x: point.time,
-            y: point.price
-        }));
-        
-        if (data.length === 0) continue;
-        
-        datasets.push({
-            label: token.symbol,
-            data: data,
-            borderColor: colors[i].border,
-            backgroundColor: colors[i].bg,
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 3,
-            pointHoverRadius: 6
-        });
-    }
-    
-    app.priceChart.data.datasets = datasets;
-    
-    if (app.chainId && CONFIG.chains[app.chainId]) {
-        app.priceChart.options.plugins.title.text = 'Prix Tokens en Temps Réel (pour 1 ' + CONFIG.chains[app.chainId].symbol + ')';
-    }
-    
-    app.priceChart.update('none');
-}
-
-function startPriceUpdates() {
-    if (app.priceUpdateInterval) return;
-    
-    updateTokenPrices();
-    
-    app.priceUpdateInterval = setInterval(updateTokenPrices, 10000);
-    
-    log('📊 Mise à jour prix: toutes les 10s', 'ok');
-}
-
-function stopPriceUpdates() {
-    if (app.priceUpdateInterval) {
-        clearInterval(app.priceUpdateInterval);
-        app.priceUpdateInterval = null;
-        log('⏸️ Arrêt mise à jour prix', 'info');
-    }
-}
-
-window.removeToken = removeToken;
-
-window.onload = function() {
-    const grid = document.getElementById('chainGrid');
-    Object.entries(CONFIG.chains).forEach(([id, chain]) => {
-        const btn = document.createElement('button');
-        btn.className = 'chain-btn';
-        btn.textContent = chain.name;
-        btn.dataset.chainId = id;
-        btn.type = 'button';
-        btn.onclick = function(e) {
-            e.preventDefault();
-            switchChain(parseInt(id));
-        };
-        grid.appendChild(btn);
-    });
-    
-    const connectBtn = document.getElementById('connectBtn');
-    connectBtn.type = 'button';
-    connectBtn.onclick = function(e) {
-        e.preventDefault();
-        connectWallet();
-    };
-    
-    const approveBtn = document.getElementById('approveBtn');
-    approveBtn.type = 'button';
-    approveBtn.onclick = function(e) {
-        e.preventDefault();
-        approveToken();
-    };
-    
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    analyzeBtn.type = 'button';
-    analyzeBtn.onclick = function(e) {
-        e.preventDefault();
-        analyzeSignals();
-    };
-    
-    const buyBtn = document.getElementById('buyBtn');
-    buyBtn.type = 'button';
-    buyBtn.onclick = function(e) {
-        e.preventDefault();
-        buyToken();
-    };
-    
-    const sellBtn = document.getElementById('sellBtn');
-    sellBtn.type = 'button';
-    sellBtn.onclick = function(e) {
-        e.preventDefault();
-        sellToken();
-    };
-    
-    const startBtn = document.getElementById('startBtn');
-    startBtn.type = 'button';
-    startBtn.onclick = function(e) {
-        e.preventDefault();
-        startBot();
-    };
-    
-    const stopBtn = document.getElementById('stopBtn');
-    stopBtn.type = 'button';
-    stopBtn.onclick = function(e) {
-        e.preventDefault();
-        stopBot();
-    };
-    
-    initChart();
-    
-    if (window.ethereum) {
-        window.ethereum.on('accountsChanged', accounts => {
-            if (accounts.length > 0) connectWallet();
-        });
-        window.ethereum.on('chainChanged', () => window.location.reload());
-    }
-    
-    log('═══════════════════════════════', 'premium');
-    log('🎯 BOT MULTI-TOKENS v4.0', 'premium');
-    log('⚡ 4 TOKENS SIMULTANÉS', 'premium');
-    log('📊 PRIX TEMPS RÉEL', 'premium');
-    log('═══════════════════════════════', 'premium');
-    log('', 'info');
-    log('📋 BLOCKCHAINS:', 'info');
-    log('• Ethereum: 15 tokens TOP', 'info');
-    log('• BSC: 15 tokens TOP', 'info');
-    log('• Polygon: 15 tokens TOP', 'info');
-    log('', 'info');
-    log('🚀 Connectez MetaMask pour commencer!', 'ok');
-};
-    </script>
-</body>
-</html>
-         + priceInUSDT.toFixed(8);
-                    } else if (priceInUSDT < 1) {
-                        priceElement.textContent = '
-
-function initChart() {
-    const ctx = document.getElementById('priceChart').getContext('2d');
-    
-    app.priceChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            datasets: []
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        font: { size: 14, weight: 'bold' },
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                },
-                title: {
-                    display: true,
-                    text: 'Prix Tokens en Temps Réel (pour 1 ' + (CONFIG.chains[app.chainId]?.symbol || 'Token') + ')',
-                    font: { size: 16, weight: 'bold' },
-                    padding: 20
-                }
-            },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'minute',
-                        displayFormats: {
-                            minute: 'HH:mm'
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Temps',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Quantité de Tokens',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                }
-            }
-        }
-    });
-}
-
-function updateChart() {
-    if (!app.priceChart) return;
-    
-    const colors = [
-        { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
-        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
-        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
-        { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
-    ];
-    
-    const datasets = [];
-    
-    for (let i = 0; i < 4; i++) {
-        const token = app.selectedTokens[i];
-        if (!token || !app.priceHistory[i][token.symbol]) continue;
-        
-        const data = app.priceHistory[i][token.symbol].map(point => ({
-            x: point.time,
-            y: point.price
-        }));
-        
-        if (data.length === 0) continue;
-        
-        datasets.push({
-            label: token.symbol,
-            data: data,
-            borderColor: colors[i].border,
-            backgroundColor: colors[i].bg,
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 3,
-            pointHoverRadius: 6
-        });
-    }
-    
-    app.priceChart.data.datasets = datasets;
-    
-    if (app.chainId && CONFIG.chains[app.chainId]) {
-        app.priceChart.options.plugins.title.text = 'Prix Tokens en Temps Réel (pour 1 ' + CONFIG.chains[app.chainId].symbol + ')';
-    }
-    
-    app.priceChart.update('none');
-}
-
-function startPriceUpdates() {
-    if (app.priceUpdateInterval) return;
-    
-    updateTokenPrices();
-    
-    app.priceUpdateInterval = setInterval(updateTokenPrices, 10000);
-    
-    log('📊 Mise à jour prix: toutes les 10s', 'ok');
-}
-
-function stopPriceUpdates() {
-    if (app.priceUpdateInterval) {
-        clearInterval(app.priceUpdateInterval);
-        app.priceUpdateInterval = null;
-        log('⏸️ Arrêt mise à jour prix', 'info');
-    }
-}
-
-window.removeToken = removeToken;
-
-window.onload = function() {
-    const grid = document.getElementById('chainGrid');
-    Object.entries(CONFIG.chains).forEach(([id, chain]) => {
-        const btn = document.createElement('button');
-        btn.className = 'chain-btn';
-        btn.textContent = chain.name;
-        btn.dataset.chainId = id;
-        btn.type = 'button';
-        btn.onclick = function(e) {
-            e.preventDefault();
-            switchChain(parseInt(id));
-        };
-        grid.appendChild(btn);
-    });
-    
-    const connectBtn = document.getElementById('connectBtn');
-    connectBtn.type = 'button';
-    connectBtn.onclick = function(e) {
-        e.preventDefault();
-        connectWallet();
-    };
-    
-    const approveBtn = document.getElementById('approveBtn');
-    approveBtn.type = 'button';
-    approveBtn.onclick = function(e) {
-        e.preventDefault();
-        approveToken();
-    };
-    
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    analyzeBtn.type = 'button';
-    analyzeBtn.onclick = function(e) {
-        e.preventDefault();
-        analyzeSignals();
-    };
-    
-    const buyBtn = document.getElementById('buyBtn');
-    buyBtn.type = 'button';
-    buyBtn.onclick = function(e) {
-        e.preventDefault();
-        buyToken();
-    };
-    
-    const sellBtn = document.getElementById('sellBtn');
-    sellBtn.type = 'button';
-    sellBtn.onclick = function(e) {
-        e.preventDefault();
-        sellToken();
-    };
-    
-    const startBtn = document.getElementById('startBtn');
-    startBtn.type = 'button';
-    startBtn.onclick = function(e) {
-        e.preventDefault();
-        startBot();
-    };
-    
-    const stopBtn = document.getElementById('stopBtn');
-    stopBtn.type = 'button';
-    stopBtn.onclick = function(e) {
-        e.preventDefault();
-        stopBot();
-    };
-    
-    initChart();
-    
-    if (window.ethereum) {
-        window.ethereum.on('accountsChanged', accounts => {
-            if (accounts.length > 0) connectWallet();
-        });
-        window.ethereum.on('chainChanged', () => window.location.reload());
-    }
-    
-    log('═══════════════════════════════', 'premium');
-    log('🎯 BOT MULTI-TOKENS v4.0', 'premium');
-    log('⚡ 4 TOKENS SIMULTANÉS', 'premium');
-    log('📊 PRIX TEMPS RÉEL', 'premium');
-    log('═══════════════════════════════', 'premium');
-    log('', 'info');
-    log('📋 BLOCKCHAINS:', 'info');
-    log('• Ethereum: 15 tokens TOP', 'info');
-    log('• BSC: 15 tokens TOP', 'info');
-    log('• Polygon: 15 tokens TOP', 'info');
-    log('', 'info');
-    log('🚀 Connectez MetaMask pour commencer!', 'ok');
-};
-    </script>
-</body>
-</html>
-         + priceInUSDT.toFixed(4);
-                    } else {
-                        priceElement.textContent = '
-
-function initChart() {
-    const ctx = document.getElementById('priceChart').getContext('2d');
-    
-    app.priceChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            datasets: []
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        font: { size: 14, weight: 'bold' },
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                },
-                title: {
-                    display: true,
-                    text: 'Prix Tokens en Temps Réel (pour 1 ' + (CONFIG.chains[app.chainId]?.symbol || 'Token') + ')',
-                    font: { size: 16, weight: 'bold' },
-                    padding: 20
-                }
-            },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'minute',
-                        displayFormats: {
-                            minute: 'HH:mm'
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Temps',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Quantité de Tokens',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                }
-            }
-        }
-    });
-}
-
-function updateChart() {
-    if (!app.priceChart) return;
-    
-    const colors = [
-        { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
-        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
-        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
-        { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
-    ];
-    
-    const datasets = [];
-    
-    for (let i = 0; i < 4; i++) {
-        const token = app.selectedTokens[i];
-        if (!token || !app.priceHistory[i][token.symbol]) continue;
-        
-        const data = app.priceHistory[i][token.symbol].map(point => ({
-            x: point.time,
-            y: point.price
-        }));
-        
-        if (data.length === 0) continue;
-        
-        datasets.push({
-            label: token.symbol,
-            data: data,
-            borderColor: colors[i].border,
-            backgroundColor: colors[i].bg,
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 3,
-            pointHoverRadius: 6
-        });
-    }
-    
-    app.priceChart.data.datasets = datasets;
-    
-    if (app.chainId && CONFIG.chains[app.chainId]) {
-        app.priceChart.options.plugins.title.text = 'Prix Tokens en Temps Réel (pour 1 ' + CONFIG.chains[app.chainId].symbol + ')';
-    }
-    
-    app.priceChart.update('none');
-}
-
-function startPriceUpdates() {
-    if (app.priceUpdateInterval) return;
-    
-    updateTokenPrices();
-    
-    app.priceUpdateInterval = setInterval(updateTokenPrices, 10000);
-    
-    log('📊 Mise à jour prix: toutes les 10s', 'ok');
-}
-
-function stopPriceUpdates() {
-    if (app.priceUpdateInterval) {
-        clearInterval(app.priceUpdateInterval);
-        app.priceUpdateInterval = null;
-        log('⏸️ Arrêt mise à jour prix', 'info');
-    }
-}
-
-window.removeToken = removeToken;
-
-window.onload = function() {
-    const grid = document.getElementById('chainGrid');
-    Object.entries(CONFIG.chains).forEach(([id, chain]) => {
-        const btn = document.createElement('button');
-        btn.className = 'chain-btn';
-        btn.textContent = chain.name;
-        btn.dataset.chainId = id;
-        btn.type = 'button';
-        btn.onclick = function(e) {
-            e.preventDefault();
-            switchChain(parseInt(id));
-        };
-        grid.appendChild(btn);
-    });
-    
-    const connectBtn = document.getElementById('connectBtn');
-    connectBtn.type = 'button';
-    connectBtn.onclick = function(e) {
-        e.preventDefault();
-        connectWallet();
-    };
-    
-    const approveBtn = document.getElementById('approveBtn');
-    approveBtn.type = 'button';
-    approveBtn.onclick = function(e) {
-        e.preventDefault();
-        approveToken();
-    };
-    
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    analyzeBtn.type = 'button';
-    analyzeBtn.onclick = function(e) {
-        e.preventDefault();
-        analyzeSignals();
-    };
-    
-    const buyBtn = document.getElementById('buyBtn');
-    buyBtn.type = 'button';
-    buyBtn.onclick = function(e) {
-        e.preventDefault();
-        buyToken();
-    };
-    
-    const sellBtn = document.getElementById('sellBtn');
-    sellBtn.type = 'button';
-    sellBtn.onclick = function(e) {
-        e.preventDefault();
-        sellToken();
-    };
-    
-    const startBtn = document.getElementById('startBtn');
-    startBtn.type = 'button';
-    startBtn.onclick = function(e) {
-        e.preventDefault();
-        startBot();
-    };
-    
-    const stopBtn = document.getElementById('stopBtn');
-    stopBtn.type = 'button';
-    stopBtn.onclick = function(e) {
-        e.preventDefault();
-        stopBot();
-    };
-    
-    initChart();
-    
-    if (window.ethereum) {
-        window.ethereum.on('accountsChanged', accounts => {
-            if (accounts.length > 0) connectWallet();
-        });
-        window.ethereum.on('chainChanged', () => window.location.reload());
-    }
-    
-    log('═══════════════════════════════', 'premium');
-    log('🎯 BOT MULTI-TOKENS v4.0', 'premium');
-    log('⚡ 4 TOKENS SIMULTANÉS', 'premium');
-    log('📊 PRIX TEMPS RÉEL', 'premium');
-    log('═══════════════════════════════', 'premium');
-    log('', 'info');
-    log('📋 BLOCKCHAINS:', 'info');
-    log('• Ethereum: 15 tokens TOP', 'info');
-    log('• BSC: 15 tokens TOP', 'info');
-    log('• Polygon: 15 tokens TOP', 'info');
-    log('', 'info');
-    log('🚀 Connectez MetaMask pour commencer!', 'ok');
-};
-    </script>
-</body>
-</html>
-         + priceInUSDT.toFixed(2);
-                    }
-                }
-                
-                const timestamp = Date.now();
-                if (!app.priceHistory[i][token.symbol]) {
-                    app.priceHistory[i][token.symbol] = [];
-                }
-                
-                app.priceHistory[i][token.symbol].push({
-                    time: timestamp,
-                    price: priceInUSDT
-                });
-                
-                if (app.priceHistory[i][token.symbol].length > 50) {
-                    app.priceHistory[i][token.symbol].shift();
-                }
-            } catch (err2) {
-                console.error('Erreur calcul prix via WETH', err2);
-            }
-        }
-    }
-    
-    updateChart();
-}
-
-function initChart() {
-    const ctx = document.getElementById('priceChart').getContext('2d');
-    
-    app.priceChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            datasets: []
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        font: { size: 14, weight: 'bold' },
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                },
-                title: {
-                    display: true,
-                    text: 'Prix Tokens en Temps Réel (pour 1 ' + (CONFIG.chains[app.chainId]?.symbol || 'Token') + ')',
-                    font: { size: 16, weight: 'bold' },
-                    padding: 20
-                }
-            },
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'minute',
-                        displayFormats: {
-                            minute: 'HH:mm'
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Temps',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Quantité de Tokens',
-                        font: { size: 12, weight: 'bold' }
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)'
-                    }
-                }
-            }
-        }
-    });
-}
-
-function updateChart() {
-    if (!app.priceChart) return;
-    
-    const colors = [
-        { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
-        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
-        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
-        { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
-    ];
-    
-    const datasets = [];
-    
-    for (let i = 0; i < 4; i++) {
-        const token = app.selectedTokens[i];
-        if (!token || !app.priceHistory[i][token.symbol]) continue;
-        
-        const data = app.priceHistory[i][token.symbol].map(point => ({
-            x: point.time,
-            y: point.price
-        }));
-        
-        if (data.length === 0) continue;
-        
-        datasets.push({
-            label: token.symbol,
-            data: data,
-            borderColor: colors[i].border,
-            backgroundColor: colors[i].bg,
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 3,
-            pointHoverRadius: 6
-        });
-    }
-    
-    app.priceChart.data.datasets = datasets;
-    
-    if (app.chainId && CONFIG.chains[app.chainId]) {
-        app.priceChart.options.plugins.title.text = 'Prix Tokens en Temps Réel (pour 1 ' + CONFIG.chains[app.chainId].symbol + ')';
-    }
-    
-    app.priceChart.update('none');
-}
-
-function startPriceUpdates() {
-    if (app.priceUpdateInterval) return;
-    
-    updateTokenPrices();
-    
-    app.priceUpdateInterval = setInterval(updateTokenPrices, 10000);
-    
-    log('📊 Mise à jour prix: toutes les 10s', 'ok');
-}
-
-function stopPriceUpdates() {
-    if (app.priceUpdateInterval) {
-        clearInterval(app.priceUpdateInterval);
-        app.priceUpdateInterval = null;
-        log('⏸️ Arrêt mise à jour prix', 'info');
-    }
-}
-
-window.removeToken = removeToken;
-
-window.onload = function() {
-    const grid = document.getElementById('chainGrid');
-    Object.entries(CONFIG.chains).forEach(([id, chain]) => {
-        const btn = document.createElement('button');
-        btn.className = 'chain-btn';
-        btn.textContent = chain.name;
-        btn.dataset.chainId = id;
-        btn.type = 'button';
-        btn.onclick = function(e) {
-            e.preventDefault();
-            switchChain(parseInt(id));
-        };
-        grid.appendChild(btn);
-    });
-    
-    const connectBtn = document.getElementById('connectBtn');
-    connectBtn.type = 'button';
-    connectBtn.onclick = function(e) {
-        e.preventDefault();
-        connectWallet();
-    };
-    
-    const approveBtn = document.getElementById('approveBtn');
-    approveBtn.type = 'button';
-    approveBtn.onclick = function(e) {
-        e.preventDefault();
-        approveToken();
-    };
-    
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    analyzeBtn.type = 'button';
-    analyzeBtn.onclick = function(e) {
-        e.preventDefault();
-        analyzeSignals();
-    };
-    
-    const buyBtn = document.getElementById('buyBtn');
-    buyBtn.type = 'button';
-    buyBtn.onclick = function(e) {
-        e.preventDefault();
-        buyToken();
-    };
-    
-    const sellBtn = document.getElementById('sellBtn');
-    sellBtn.type = 'button';
-    sellBtn.onclick = function(e) {
-        e.preventDefault();
-        sellToken();
-    };
-    
-    const startBtn = document.getElementById('startBtn');
-    startBtn.type = 'button';
-    startBtn.onclick = function(e) {
-        e.preventDefault();
-        startBot();
-    };
-    
-    const stopBtn = document.getElementById('stopBtn');
-    stopBtn.type = 'button';
-    stopBtn.onclick = function(e) {
-        e.preventDefault();
-        stopBot();
-    };
-    
-    initChart();
-    
-    if (window.ethereum) {
-        window.ethereum.on('accountsChanged', accounts => {
-            if (accounts.length > 0) connectWallet();
-        });
-        window.ethereum.on('chainChanged', () => window.location.reload());
-    }
-    
-    log('═══════════════════════════════', 'premium');
-    log('🎯 BOT MULTI-TOKENS v4.0', 'premium');
-    log('⚡ 4 TOKENS SIMULTANÉS', 'premium');
-    log('📊 PRIX TEMPS RÉEL', 'premium');
-    log('═══════════════════════════════', 'premium');
-    log('', 'info');
-    log('📋 BLOCKCHAINS:', 'info');
-    log('• Ethereum: 15 tokens TOP', 'info');
-    log('• BSC: 15 tokens TOP', 'info');
-    log('• Polygon: 15 tokens TOP', 'info');
-    log('', 'info');
-    log('🚀 Connectez MetaMask pour commencer!', 'ok');
+    log('🚀 Sélectionnez un token et tradez!', 'ok');
 };
     </script>
 </body>
