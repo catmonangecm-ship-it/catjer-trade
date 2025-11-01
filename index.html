@@ -153,7 +153,7 @@
             
             <!-- GRAPHIQUES PRIX -->
             <div class="card wide">
-                <h2>📈 Prix Temps Réel (MAJ toutes les 10s)</h2>
+                <h2>📈 Prix en USD - Temps Réel (MAJ 10s)</h2>
                 <div class="chart-container">
                     <canvas id="priceChart"></canvas>
                 </div>
@@ -634,46 +634,46 @@ async function analyzeSignals() {
         document.getElementById('signalStatus').className = 'status premium';
         document.getElementById('signalStatus').textContent = '🔍 Analyse...';
         
-        const rsi = 30 + Math.random() * 40;
+        const rsi = 25 + Math.random() * 50;
         app.signals.rsi = rsi;
         
         let rsiSignal = 'neutral';
-        if (rsi < 30) rsiSignal = 'oversold';
-        if (rsi > 70) rsiSignal = 'overbought';
+        if (rsi < 35) rsiSignal = 'oversold';
+        if (rsi > 65) rsiSignal = 'overbought';
         
         log('📊 RSI: ' + fmt(rsi, 1), 'info');
         
-        const maSignal = Math.random() > 0.7 ? 'bullish' : (Math.random() > 0.5 ? 'bearish' : 'neutral');
+        const maSignal = Math.random() > 0.6 ? 'bullish' : (Math.random() > 0.4 ? 'bearish' : 'neutral');
         app.signals.ma = maSignal;
         log('📈 MA: ' + maSignal.toUpperCase(), 'info');
         
-        const volumeSignal = Math.random() > 0.6 ? 'high' : 'normal';
+        const volumeSignal = Math.random() > 0.5 ? 'high' : 'normal';
         app.signals.volume = volumeSignal;
         log('📊 Volume: ' + volumeSignal.toUpperCase(), 'info');
         
         updateSignalUI();
         
         const buyScore = 
-            (rsiSignal === 'oversold' ? 3 : 0) +
+            (rsiSignal === 'oversold' ? 2 : 0) +
             (maSignal === 'bullish' ? 2 : 0) +
             (volumeSignal === 'high' ? 1 : 0);
         
         const sellScore =
-            (rsiSignal === 'overbought' ? 3 : 0) +
+            (rsiSignal === 'overbought' ? 2 : 0) +
             (maSignal === 'bearish' ? 2 : 0);
         
-        log('💯 Score ACHAT: ' + buyScore + '/6', 'info');
-        log('💯 Score VENTE: ' + sellScore + '/5', 'info');
+        log('💯 Score ACHAT: ' + buyScore + '/5', 'info');
+        log('💯 Score VENTE: ' + sellScore + '/4', 'info');
         
         let decision = 'HOLD';
         
-        if (buyScore >= 4) {
+        if (buyScore >= 3) {
             decision = 'BUY';
             log('🟢 SIGNAL ACHAT!', 'ok');
             document.getElementById('signalStatus').className = 'status ok';
             document.getElementById('signalStatus').textContent = '🟢 Signal ACHAT';
             app.stats.signals++;
-        } else if (sellScore >= 4) {
+        } else if (sellScore >= 3) {
             decision = 'SELL';
             log('🔴 SIGNAL VENTE!', 'warning');
             document.getElementById('signalStatus').className = 'status warning';
@@ -706,10 +706,10 @@ function updateSignalUI() {
     const rsiText = document.getElementById('rsiText');
     rsiText.textContent = 'RSI (14): ' + fmt(rsi, 1);
     
-    if (rsi < 30) {
+    if (rsi < 35) {
         rsiDot.className = 'indicator-dot bullish';
         rsiText.textContent += ' - SURVENDU (Achat)';
-    } else if (rsi > 70) {
+    } else if (rsi > 65) {
         rsiDot.className = 'indicator-dot bearish';
         rsiText.textContent += ' - SURACHETÉ (Vente)';
     } else {
@@ -948,21 +948,684 @@ async function updateTokenPrices() {
     if (!chain) return;
     
     const router = new ethers.Contract(chain.router, ROUTER_ABI, app.provider);
+    const usdt = new ethers.Contract(chain.usdt, ERC20_ABI, app.provider);
     
     for (let i = 0; i < 4; i++) {
         const token = app.selectedTokens[i];
         if (!token) continue;
         
         try {
-            const amountIn = ethers.utils.parseEther('1');
-            const path = [chain.weth, token.address];
+            const amountIn = ethers.utils.parseUnits('1', token.decimals);
+            const path = [token.address, chain.usdt];
             
             const amounts = await router.getAmountsOut(amountIn, path);
-            const price = parseFloat(ethers.utils.formatUnits(amounts[1], token.decimals));
+            const priceInUSDT = parseFloat(ethers.utils.formatUnits(amounts[1], chain.usdtDecimals));
             
             const priceElement = document.getElementById('price' + i);
             if (priceElement) {
-                priceElement.textContent = fmt(price, 6) + ' ' + token.symbol;
+                if (priceInUSDT < 0.01) {
+                    priceElement.textContent = '
+
+function initChart() {
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    
+    app.priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: { size: 14, weight: 'bold' },
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Prix Tokens en USD - Temps Réel',
+                    font: { size: 16, weight: 'bold' },
+                    padding: 20
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'minute',
+                        displayFormats: {
+                            minute: 'HH:mm'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Temps',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Prix (USD)',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateChart() {
+    if (!app.priceChart) return;
+    
+    const colors = [
+        { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
+        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+        { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
+    ];
+    
+    const datasets = [];
+    
+    for (let i = 0; i < 4; i++) {
+        const token = app.selectedTokens[i];
+        if (!token || !app.priceHistory[i][token.symbol]) continue;
+        
+        const data = app.priceHistory[i][token.symbol].map(point => ({
+            x: point.time,
+            y: point.price
+        }));
+        
+        if (data.length === 0) continue;
+        
+        datasets.push({
+            label: token.symbol,
+            data: data,
+            borderColor: colors[i].border,
+            backgroundColor: colors[i].bg,
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 6
+        });
+    }
+    
+    app.priceChart.data.datasets = datasets;
+    app.priceChart.options.plugins.title.text = 'Prix Tokens en USD - Temps Réel';
+    app.priceChart.update('none');
+}
+
+function startPriceUpdates() {
+    if (app.priceUpdateInterval) return;
+    
+    updateTokenPrices();
+    
+    app.priceUpdateInterval = setInterval(updateTokenPrices, 10000);
+    
+    log('📊 Mise à jour prix: toutes les 10s', 'ok');
+}
+
+function stopPriceUpdates() {
+    if (app.priceUpdateInterval) {
+        clearInterval(app.priceUpdateInterval);
+        app.priceUpdateInterval = null;
+        log('⏸️ Arrêt mise à jour prix', 'info');
+    }
+}
+
+window.removeToken = removeToken;
+
+window.onload = function() {
+    const grid = document.getElementById('chainGrid');
+    Object.entries(CONFIG.chains).forEach(([id, chain]) => {
+        const btn = document.createElement('button');
+        btn.className = 'chain-btn';
+        btn.textContent = chain.name;
+        btn.dataset.chainId = id;
+        btn.type = 'button';
+        btn.onclick = function(e) {
+            e.preventDefault();
+            switchChain(parseInt(id));
+        };
+        grid.appendChild(btn);
+    });
+    
+    const connectBtn = document.getElementById('connectBtn');
+    connectBtn.type = 'button';
+    connectBtn.onclick = function(e) {
+        e.preventDefault();
+        connectWallet();
+    };
+    
+    const approveBtn = document.getElementById('approveBtn');
+    approveBtn.type = 'button';
+    approveBtn.onclick = function(e) {
+        e.preventDefault();
+        approveToken();
+    };
+    
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    analyzeBtn.type = 'button';
+    analyzeBtn.onclick = function(e) {
+        e.preventDefault();
+        analyzeSignals();
+    };
+    
+    const buyBtn = document.getElementById('buyBtn');
+    buyBtn.type = 'button';
+    buyBtn.onclick = function(e) {
+        e.preventDefault();
+        buyToken();
+    };
+    
+    const sellBtn = document.getElementById('sellBtn');
+    sellBtn.type = 'button';
+    sellBtn.onclick = function(e) {
+        e.preventDefault();
+        sellToken();
+    };
+    
+    const startBtn = document.getElementById('startBtn');
+    startBtn.type = 'button';
+    startBtn.onclick = function(e) {
+        e.preventDefault();
+        startBot();
+    };
+    
+    const stopBtn = document.getElementById('stopBtn');
+    stopBtn.type = 'button';
+    stopBtn.onclick = function(e) {
+        e.preventDefault();
+        stopBot();
+    };
+    
+    initChart();
+    
+    if (window.ethereum) {
+        window.ethereum.on('accountsChanged', accounts => {
+            if (accounts.length > 0) connectWallet();
+        });
+        window.ethereum.on('chainChanged', () => window.location.reload());
+    }
+    
+    log('═══════════════════════════════', 'premium');
+    log('🎯 BOT MULTI-TOKENS v4.0', 'premium');
+    log('⚡ 4 TOKENS SIMULTANÉS', 'premium');
+    log('📊 PRIX TEMPS RÉEL', 'premium');
+    log('═══════════════════════════════', 'premium');
+    log('', 'info');
+    log('📋 BLOCKCHAINS:', 'info');
+    log('• Ethereum: 15 tokens TOP', 'info');
+    log('• BSC: 15 tokens TOP', 'info');
+    log('• Polygon: 15 tokens TOP', 'info');
+    log('', 'info');
+    log('🚀 Connectez MetaMask pour commencer!', 'ok');
+};
+    </script>
+</body>
+</html>
+         + priceInUSDT.toFixed(8);
+                } else if (priceInUSDT < 1) {
+                    priceElement.textContent = '
+
+function initChart() {
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    
+    app.priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: { size: 14, weight: 'bold' },
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Prix Tokens en Temps Réel (pour 1 ' + (CONFIG.chains[app.chainId]?.symbol || 'Token') + ')',
+                    font: { size: 16, weight: 'bold' },
+                    padding: 20
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'minute',
+                        displayFormats: {
+                            minute: 'HH:mm'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Temps',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Quantité de Tokens',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateChart() {
+    if (!app.priceChart) return;
+    
+    const colors = [
+        { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
+        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+        { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
+    ];
+    
+    const datasets = [];
+    
+    for (let i = 0; i < 4; i++) {
+        const token = app.selectedTokens[i];
+        if (!token || !app.priceHistory[i][token.symbol]) continue;
+        
+        const data = app.priceHistory[i][token.symbol].map(point => ({
+            x: point.time,
+            y: point.price
+        }));
+        
+        if (data.length === 0) continue;
+        
+        datasets.push({
+            label: token.symbol,
+            data: data,
+            borderColor: colors[i].border,
+            backgroundColor: colors[i].bg,
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 6
+        });
+    }
+    
+    app.priceChart.data.datasets = datasets;
+    
+    if (app.chainId && CONFIG.chains[app.chainId]) {
+        app.priceChart.options.plugins.title.text = 'Prix Tokens en Temps Réel (pour 1 ' + CONFIG.chains[app.chainId].symbol + ')';
+    }
+    
+    app.priceChart.update('none');
+}
+
+function startPriceUpdates() {
+    if (app.priceUpdateInterval) return;
+    
+    updateTokenPrices();
+    
+    app.priceUpdateInterval = setInterval(updateTokenPrices, 10000);
+    
+    log('📊 Mise à jour prix: toutes les 10s', 'ok');
+}
+
+function stopPriceUpdates() {
+    if (app.priceUpdateInterval) {
+        clearInterval(app.priceUpdateInterval);
+        app.priceUpdateInterval = null;
+        log('⏸️ Arrêt mise à jour prix', 'info');
+    }
+}
+
+window.removeToken = removeToken;
+
+window.onload = function() {
+    const grid = document.getElementById('chainGrid');
+    Object.entries(CONFIG.chains).forEach(([id, chain]) => {
+        const btn = document.createElement('button');
+        btn.className = 'chain-btn';
+        btn.textContent = chain.name;
+        btn.dataset.chainId = id;
+        btn.type = 'button';
+        btn.onclick = function(e) {
+            e.preventDefault();
+            switchChain(parseInt(id));
+        };
+        grid.appendChild(btn);
+    });
+    
+    const connectBtn = document.getElementById('connectBtn');
+    connectBtn.type = 'button';
+    connectBtn.onclick = function(e) {
+        e.preventDefault();
+        connectWallet();
+    };
+    
+    const approveBtn = document.getElementById('approveBtn');
+    approveBtn.type = 'button';
+    approveBtn.onclick = function(e) {
+        e.preventDefault();
+        approveToken();
+    };
+    
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    analyzeBtn.type = 'button';
+    analyzeBtn.onclick = function(e) {
+        e.preventDefault();
+        analyzeSignals();
+    };
+    
+    const buyBtn = document.getElementById('buyBtn');
+    buyBtn.type = 'button';
+    buyBtn.onclick = function(e) {
+        e.preventDefault();
+        buyToken();
+    };
+    
+    const sellBtn = document.getElementById('sellBtn');
+    sellBtn.type = 'button';
+    sellBtn.onclick = function(e) {
+        e.preventDefault();
+        sellToken();
+    };
+    
+    const startBtn = document.getElementById('startBtn');
+    startBtn.type = 'button';
+    startBtn.onclick = function(e) {
+        e.preventDefault();
+        startBot();
+    };
+    
+    const stopBtn = document.getElementById('stopBtn');
+    stopBtn.type = 'button';
+    stopBtn.onclick = function(e) {
+        e.preventDefault();
+        stopBot();
+    };
+    
+    initChart();
+    
+    if (window.ethereum) {
+        window.ethereum.on('accountsChanged', accounts => {
+            if (accounts.length > 0) connectWallet();
+        });
+        window.ethereum.on('chainChanged', () => window.location.reload());
+    }
+    
+    log('═══════════════════════════════', 'premium');
+    log('🎯 BOT MULTI-TOKENS v4.0', 'premium');
+    log('⚡ 4 TOKENS SIMULTANÉS', 'premium');
+    log('📊 PRIX TEMPS RÉEL', 'premium');
+    log('═══════════════════════════════', 'premium');
+    log('', 'info');
+    log('📋 BLOCKCHAINS:', 'info');
+    log('• Ethereum: 15 tokens TOP', 'info');
+    log('• BSC: 15 tokens TOP', 'info');
+    log('• Polygon: 15 tokens TOP', 'info');
+    log('', 'info');
+    log('🚀 Connectez MetaMask pour commencer!', 'ok');
+};
+    </script>
+</body>
+</html>
+         + priceInUSDT.toFixed(4);
+                } else {
+                    priceElement.textContent = '
+
+function initChart() {
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    
+    app.priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: { size: 14, weight: 'bold' },
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Prix Tokens en Temps Réel (pour 1 ' + (CONFIG.chains[app.chainId]?.symbol || 'Token') + ')',
+                    font: { size: 16, weight: 'bold' },
+                    padding: 20
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'minute',
+                        displayFormats: {
+                            minute: 'HH:mm'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Temps',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Quantité de Tokens',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateChart() {
+    if (!app.priceChart) return;
+    
+    const colors = [
+        { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
+        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+        { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
+    ];
+    
+    const datasets = [];
+    
+    for (let i = 0; i < 4; i++) {
+        const token = app.selectedTokens[i];
+        if (!token || !app.priceHistory[i][token.symbol]) continue;
+        
+        const data = app.priceHistory[i][token.symbol].map(point => ({
+            x: point.time,
+            y: point.price
+        }));
+        
+        if (data.length === 0) continue;
+        
+        datasets.push({
+            label: token.symbol,
+            data: data,
+            borderColor: colors[i].border,
+            backgroundColor: colors[i].bg,
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 6
+        });
+    }
+    
+    app.priceChart.data.datasets = datasets;
+    
+    if (app.chainId && CONFIG.chains[app.chainId]) {
+        app.priceChart.options.plugins.title.text = 'Prix Tokens en Temps Réel (pour 1 ' + CONFIG.chains[app.chainId].symbol + ')';
+    }
+    
+    app.priceChart.update('none');
+}
+
+function startPriceUpdates() {
+    if (app.priceUpdateInterval) return;
+    
+    updateTokenPrices();
+    
+    app.priceUpdateInterval = setInterval(updateTokenPrices, 10000);
+    
+    log('📊 Mise à jour prix: toutes les 10s', 'ok');
+}
+
+function stopPriceUpdates() {
+    if (app.priceUpdateInterval) {
+        clearInterval(app.priceUpdateInterval);
+        app.priceUpdateInterval = null;
+        log('⏸️ Arrêt mise à jour prix', 'info');
+    }
+}
+
+window.removeToken = removeToken;
+
+window.onload = function() {
+    const grid = document.getElementById('chainGrid');
+    Object.entries(CONFIG.chains).forEach(([id, chain]) => {
+        const btn = document.createElement('button');
+        btn.className = 'chain-btn';
+        btn.textContent = chain.name;
+        btn.dataset.chainId = id;
+        btn.type = 'button';
+        btn.onclick = function(e) {
+            e.preventDefault();
+            switchChain(parseInt(id));
+        };
+        grid.appendChild(btn);
+    });
+    
+    const connectBtn = document.getElementById('connectBtn');
+    connectBtn.type = 'button';
+    connectBtn.onclick = function(e) {
+        e.preventDefault();
+        connectWallet();
+    };
+    
+    const approveBtn = document.getElementById('approveBtn');
+    approveBtn.type = 'button';
+    approveBtn.onclick = function(e) {
+        e.preventDefault();
+        approveToken();
+    };
+    
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    analyzeBtn.type = 'button';
+    analyzeBtn.onclick = function(e) {
+        e.preventDefault();
+        analyzeSignals();
+    };
+    
+    const buyBtn = document.getElementById('buyBtn');
+    buyBtn.type = 'button';
+    buyBtn.onclick = function(e) {
+        e.preventDefault();
+        buyToken();
+    };
+    
+    const sellBtn = document.getElementById('sellBtn');
+    sellBtn.type = 'button';
+    sellBtn.onclick = function(e) {
+        e.preventDefault();
+        sellToken();
+    };
+    
+    const startBtn = document.getElementById('startBtn');
+    startBtn.type = 'button';
+    startBtn.onclick = function(e) {
+        e.preventDefault();
+        startBot();
+    };
+    
+    const stopBtn = document.getElementById('stopBtn');
+    stopBtn.type = 'button';
+    stopBtn.onclick = function(e) {
+        e.preventDefault();
+        stopBot();
+    };
+    
+    initChart();
+    
+    if (window.ethereum) {
+        window.ethereum.on('accountsChanged', accounts => {
+            if (accounts.length > 0) connectWallet();
+        });
+        window.ethereum.on('chainChanged', () => window.location.reload());
+    }
+    
+    log('═══════════════════════════════', 'premium');
+    log('🎯 BOT MULTI-TOKENS v4.0', 'premium');
+    log('⚡ 4 TOKENS SIMULTANÉS', 'premium');
+    log('📊 PRIX TEMPS RÉEL', 'premium');
+    log('═══════════════════════════════', 'premium');
+    log('', 'info');
+    log('📋 BLOCKCHAINS:', 'info');
+    log('• Ethereum: 15 tokens TOP', 'info');
+    log('• BSC: 15 tokens TOP', 'info');
+    log('• Polygon: 15 tokens TOP', 'info');
+    log('', 'info');
+    log('🚀 Connectez MetaMask pour commencer!', 'ok');
+};
+    </script>
+</body>
+</html>
+         + priceInUSDT.toFixed(2);
+                }
             }
             
             const timestamp = Date.now();
@@ -972,7 +1635,7 @@ async function updateTokenPrices() {
             
             app.priceHistory[i][token.symbol].push({
                 time: timestamp,
-                price: price
+                price: priceInUSDT
             });
             
             if (app.priceHistory[i][token.symbol].length > 50) {
@@ -981,6 +1644,706 @@ async function updateTokenPrices() {
             
         } catch (err) {
             console.error('Erreur prix ' + token.symbol, err);
+            
+            try {
+                const amountIn = ethers.utils.parseEther('1');
+                const pathViaWETH = [chain.weth, token.address];
+                const amounts = await router.getAmountsOut(amountIn, path);
+                const tokensPerETH = parseFloat(ethers.utils.formatUnits(amounts[1], token.decimals));
+                
+                const pathETHtoUSDT = [chain.weth, chain.usdt];
+                const amountsETH = await router.getAmountsOut(amountIn, pathETHtoUSDT);
+                const ethPriceUSDT = parseFloat(ethers.utils.formatUnits(amountsETH[1], chain.usdtDecimals));
+                
+                const priceInUSDT = ethPriceUSDT / tokensPerETH;
+                
+                const priceElement = document.getElementById('price' + i);
+                if (priceElement) {
+                    if (priceInUSDT < 0.01) {
+                        priceElement.textContent = '
+
+function initChart() {
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    
+    app.priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: { size: 14, weight: 'bold' },
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Prix Tokens en Temps Réel (pour 1 ' + (CONFIG.chains[app.chainId]?.symbol || 'Token') + ')',
+                    font: { size: 16, weight: 'bold' },
+                    padding: 20
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'minute',
+                        displayFormats: {
+                            minute: 'HH:mm'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Temps',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Quantité de Tokens',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateChart() {
+    if (!app.priceChart) return;
+    
+    const colors = [
+        { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
+        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+        { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
+    ];
+    
+    const datasets = [];
+    
+    for (let i = 0; i < 4; i++) {
+        const token = app.selectedTokens[i];
+        if (!token || !app.priceHistory[i][token.symbol]) continue;
+        
+        const data = app.priceHistory[i][token.symbol].map(point => ({
+            x: point.time,
+            y: point.price
+        }));
+        
+        if (data.length === 0) continue;
+        
+        datasets.push({
+            label: token.symbol,
+            data: data,
+            borderColor: colors[i].border,
+            backgroundColor: colors[i].bg,
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 6
+        });
+    }
+    
+    app.priceChart.data.datasets = datasets;
+    
+    if (app.chainId && CONFIG.chains[app.chainId]) {
+        app.priceChart.options.plugins.title.text = 'Prix Tokens en Temps Réel (pour 1 ' + CONFIG.chains[app.chainId].symbol + ')';
+    }
+    
+    app.priceChart.update('none');
+}
+
+function startPriceUpdates() {
+    if (app.priceUpdateInterval) return;
+    
+    updateTokenPrices();
+    
+    app.priceUpdateInterval = setInterval(updateTokenPrices, 10000);
+    
+    log('📊 Mise à jour prix: toutes les 10s', 'ok');
+}
+
+function stopPriceUpdates() {
+    if (app.priceUpdateInterval) {
+        clearInterval(app.priceUpdateInterval);
+        app.priceUpdateInterval = null;
+        log('⏸️ Arrêt mise à jour prix', 'info');
+    }
+}
+
+window.removeToken = removeToken;
+
+window.onload = function() {
+    const grid = document.getElementById('chainGrid');
+    Object.entries(CONFIG.chains).forEach(([id, chain]) => {
+        const btn = document.createElement('button');
+        btn.className = 'chain-btn';
+        btn.textContent = chain.name;
+        btn.dataset.chainId = id;
+        btn.type = 'button';
+        btn.onclick = function(e) {
+            e.preventDefault();
+            switchChain(parseInt(id));
+        };
+        grid.appendChild(btn);
+    });
+    
+    const connectBtn = document.getElementById('connectBtn');
+    connectBtn.type = 'button';
+    connectBtn.onclick = function(e) {
+        e.preventDefault();
+        connectWallet();
+    };
+    
+    const approveBtn = document.getElementById('approveBtn');
+    approveBtn.type = 'button';
+    approveBtn.onclick = function(e) {
+        e.preventDefault();
+        approveToken();
+    };
+    
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    analyzeBtn.type = 'button';
+    analyzeBtn.onclick = function(e) {
+        e.preventDefault();
+        analyzeSignals();
+    };
+    
+    const buyBtn = document.getElementById('buyBtn');
+    buyBtn.type = 'button';
+    buyBtn.onclick = function(e) {
+        e.preventDefault();
+        buyToken();
+    };
+    
+    const sellBtn = document.getElementById('sellBtn');
+    sellBtn.type = 'button';
+    sellBtn.onclick = function(e) {
+        e.preventDefault();
+        sellToken();
+    };
+    
+    const startBtn = document.getElementById('startBtn');
+    startBtn.type = 'button';
+    startBtn.onclick = function(e) {
+        e.preventDefault();
+        startBot();
+    };
+    
+    const stopBtn = document.getElementById('stopBtn');
+    stopBtn.type = 'button';
+    stopBtn.onclick = function(e) {
+        e.preventDefault();
+        stopBot();
+    };
+    
+    initChart();
+    
+    if (window.ethereum) {
+        window.ethereum.on('accountsChanged', accounts => {
+            if (accounts.length > 0) connectWallet();
+        });
+        window.ethereum.on('chainChanged', () => window.location.reload());
+    }
+    
+    log('═══════════════════════════════', 'premium');
+    log('🎯 BOT MULTI-TOKENS v4.0', 'premium');
+    log('⚡ 4 TOKENS SIMULTANÉS', 'premium');
+    log('📊 PRIX TEMPS RÉEL', 'premium');
+    log('═══════════════════════════════', 'premium');
+    log('', 'info');
+    log('📋 BLOCKCHAINS:', 'info');
+    log('• Ethereum: 15 tokens TOP', 'info');
+    log('• BSC: 15 tokens TOP', 'info');
+    log('• Polygon: 15 tokens TOP', 'info');
+    log('', 'info');
+    log('🚀 Connectez MetaMask pour commencer!', 'ok');
+};
+    </script>
+</body>
+</html>
+         + priceInUSDT.toFixed(8);
+                    } else if (priceInUSDT < 1) {
+                        priceElement.textContent = '
+
+function initChart() {
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    
+    app.priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: { size: 14, weight: 'bold' },
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Prix Tokens en Temps Réel (pour 1 ' + (CONFIG.chains[app.chainId]?.symbol || 'Token') + ')',
+                    font: { size: 16, weight: 'bold' },
+                    padding: 20
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'minute',
+                        displayFormats: {
+                            minute: 'HH:mm'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Temps',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Quantité de Tokens',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateChart() {
+    if (!app.priceChart) return;
+    
+    const colors = [
+        { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
+        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+        { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
+    ];
+    
+    const datasets = [];
+    
+    for (let i = 0; i < 4; i++) {
+        const token = app.selectedTokens[i];
+        if (!token || !app.priceHistory[i][token.symbol]) continue;
+        
+        const data = app.priceHistory[i][token.symbol].map(point => ({
+            x: point.time,
+            y: point.price
+        }));
+        
+        if (data.length === 0) continue;
+        
+        datasets.push({
+            label: token.symbol,
+            data: data,
+            borderColor: colors[i].border,
+            backgroundColor: colors[i].bg,
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 6
+        });
+    }
+    
+    app.priceChart.data.datasets = datasets;
+    
+    if (app.chainId && CONFIG.chains[app.chainId]) {
+        app.priceChart.options.plugins.title.text = 'Prix Tokens en Temps Réel (pour 1 ' + CONFIG.chains[app.chainId].symbol + ')';
+    }
+    
+    app.priceChart.update('none');
+}
+
+function startPriceUpdates() {
+    if (app.priceUpdateInterval) return;
+    
+    updateTokenPrices();
+    
+    app.priceUpdateInterval = setInterval(updateTokenPrices, 10000);
+    
+    log('📊 Mise à jour prix: toutes les 10s', 'ok');
+}
+
+function stopPriceUpdates() {
+    if (app.priceUpdateInterval) {
+        clearInterval(app.priceUpdateInterval);
+        app.priceUpdateInterval = null;
+        log('⏸️ Arrêt mise à jour prix', 'info');
+    }
+}
+
+window.removeToken = removeToken;
+
+window.onload = function() {
+    const grid = document.getElementById('chainGrid');
+    Object.entries(CONFIG.chains).forEach(([id, chain]) => {
+        const btn = document.createElement('button');
+        btn.className = 'chain-btn';
+        btn.textContent = chain.name;
+        btn.dataset.chainId = id;
+        btn.type = 'button';
+        btn.onclick = function(e) {
+            e.preventDefault();
+            switchChain(parseInt(id));
+        };
+        grid.appendChild(btn);
+    });
+    
+    const connectBtn = document.getElementById('connectBtn');
+    connectBtn.type = 'button';
+    connectBtn.onclick = function(e) {
+        e.preventDefault();
+        connectWallet();
+    };
+    
+    const approveBtn = document.getElementById('approveBtn');
+    approveBtn.type = 'button';
+    approveBtn.onclick = function(e) {
+        e.preventDefault();
+        approveToken();
+    };
+    
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    analyzeBtn.type = 'button';
+    analyzeBtn.onclick = function(e) {
+        e.preventDefault();
+        analyzeSignals();
+    };
+    
+    const buyBtn = document.getElementById('buyBtn');
+    buyBtn.type = 'button';
+    buyBtn.onclick = function(e) {
+        e.preventDefault();
+        buyToken();
+    };
+    
+    const sellBtn = document.getElementById('sellBtn');
+    sellBtn.type = 'button';
+    sellBtn.onclick = function(e) {
+        e.preventDefault();
+        sellToken();
+    };
+    
+    const startBtn = document.getElementById('startBtn');
+    startBtn.type = 'button';
+    startBtn.onclick = function(e) {
+        e.preventDefault();
+        startBot();
+    };
+    
+    const stopBtn = document.getElementById('stopBtn');
+    stopBtn.type = 'button';
+    stopBtn.onclick = function(e) {
+        e.preventDefault();
+        stopBot();
+    };
+    
+    initChart();
+    
+    if (window.ethereum) {
+        window.ethereum.on('accountsChanged', accounts => {
+            if (accounts.length > 0) connectWallet();
+        });
+        window.ethereum.on('chainChanged', () => window.location.reload());
+    }
+    
+    log('═══════════════════════════════', 'premium');
+    log('🎯 BOT MULTI-TOKENS v4.0', 'premium');
+    log('⚡ 4 TOKENS SIMULTANÉS', 'premium');
+    log('📊 PRIX TEMPS RÉEL', 'premium');
+    log('═══════════════════════════════', 'premium');
+    log('', 'info');
+    log('📋 BLOCKCHAINS:', 'info');
+    log('• Ethereum: 15 tokens TOP', 'info');
+    log('• BSC: 15 tokens TOP', 'info');
+    log('• Polygon: 15 tokens TOP', 'info');
+    log('', 'info');
+    log('🚀 Connectez MetaMask pour commencer!', 'ok');
+};
+    </script>
+</body>
+</html>
+         + priceInUSDT.toFixed(4);
+                    } else {
+                        priceElement.textContent = '
+
+function initChart() {
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    
+    app.priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        font: { size: 14, weight: 'bold' },
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Prix Tokens en Temps Réel (pour 1 ' + (CONFIG.chains[app.chainId]?.symbol || 'Token') + ')',
+                    font: { size: 16, weight: 'bold' },
+                    padding: 20
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'minute',
+                        displayFormats: {
+                            minute: 'HH:mm'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Temps',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Quantité de Tokens',
+                        font: { size: 12, weight: 'bold' }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateChart() {
+    if (!app.priceChart) return;
+    
+    const colors = [
+        { border: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' },
+        { border: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+        { border: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+        { border: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' }
+    ];
+    
+    const datasets = [];
+    
+    for (let i = 0; i < 4; i++) {
+        const token = app.selectedTokens[i];
+        if (!token || !app.priceHistory[i][token.symbol]) continue;
+        
+        const data = app.priceHistory[i][token.symbol].map(point => ({
+            x: point.time,
+            y: point.price
+        }));
+        
+        if (data.length === 0) continue;
+        
+        datasets.push({
+            label: token.symbol,
+            data: data,
+            borderColor: colors[i].border,
+            backgroundColor: colors[i].bg,
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 6
+        });
+    }
+    
+    app.priceChart.data.datasets = datasets;
+    
+    if (app.chainId && CONFIG.chains[app.chainId]) {
+        app.priceChart.options.plugins.title.text = 'Prix Tokens en Temps Réel (pour 1 ' + CONFIG.chains[app.chainId].symbol + ')';
+    }
+    
+    app.priceChart.update('none');
+}
+
+function startPriceUpdates() {
+    if (app.priceUpdateInterval) return;
+    
+    updateTokenPrices();
+    
+    app.priceUpdateInterval = setInterval(updateTokenPrices, 10000);
+    
+    log('📊 Mise à jour prix: toutes les 10s', 'ok');
+}
+
+function stopPriceUpdates() {
+    if (app.priceUpdateInterval) {
+        clearInterval(app.priceUpdateInterval);
+        app.priceUpdateInterval = null;
+        log('⏸️ Arrêt mise à jour prix', 'info');
+    }
+}
+
+window.removeToken = removeToken;
+
+window.onload = function() {
+    const grid = document.getElementById('chainGrid');
+    Object.entries(CONFIG.chains).forEach(([id, chain]) => {
+        const btn = document.createElement('button');
+        btn.className = 'chain-btn';
+        btn.textContent = chain.name;
+        btn.dataset.chainId = id;
+        btn.type = 'button';
+        btn.onclick = function(e) {
+            e.preventDefault();
+            switchChain(parseInt(id));
+        };
+        grid.appendChild(btn);
+    });
+    
+    const connectBtn = document.getElementById('connectBtn');
+    connectBtn.type = 'button';
+    connectBtn.onclick = function(e) {
+        e.preventDefault();
+        connectWallet();
+    };
+    
+    const approveBtn = document.getElementById('approveBtn');
+    approveBtn.type = 'button';
+    approveBtn.onclick = function(e) {
+        e.preventDefault();
+        approveToken();
+    };
+    
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    analyzeBtn.type = 'button';
+    analyzeBtn.onclick = function(e) {
+        e.preventDefault();
+        analyzeSignals();
+    };
+    
+    const buyBtn = document.getElementById('buyBtn');
+    buyBtn.type = 'button';
+    buyBtn.onclick = function(e) {
+        e.preventDefault();
+        buyToken();
+    };
+    
+    const sellBtn = document.getElementById('sellBtn');
+    sellBtn.type = 'button';
+    sellBtn.onclick = function(e) {
+        e.preventDefault();
+        sellToken();
+    };
+    
+    const startBtn = document.getElementById('startBtn');
+    startBtn.type = 'button';
+    startBtn.onclick = function(e) {
+        e.preventDefault();
+        startBot();
+    };
+    
+    const stopBtn = document.getElementById('stopBtn');
+    stopBtn.type = 'button';
+    stopBtn.onclick = function(e) {
+        e.preventDefault();
+        stopBot();
+    };
+    
+    initChart();
+    
+    if (window.ethereum) {
+        window.ethereum.on('accountsChanged', accounts => {
+            if (accounts.length > 0) connectWallet();
+        });
+        window.ethereum.on('chainChanged', () => window.location.reload());
+    }
+    
+    log('═══════════════════════════════', 'premium');
+    log('🎯 BOT MULTI-TOKENS v4.0', 'premium');
+    log('⚡ 4 TOKENS SIMULTANÉS', 'premium');
+    log('📊 PRIX TEMPS RÉEL', 'premium');
+    log('═══════════════════════════════', 'premium');
+    log('', 'info');
+    log('📋 BLOCKCHAINS:', 'info');
+    log('• Ethereum: 15 tokens TOP', 'info');
+    log('• BSC: 15 tokens TOP', 'info');
+    log('• Polygon: 15 tokens TOP', 'info');
+    log('', 'info');
+    log('🚀 Connectez MetaMask pour commencer!', 'ok');
+};
+    </script>
+</body>
+</html>
+         + priceInUSDT.toFixed(2);
+                    }
+                }
+                
+                const timestamp = Date.now();
+                if (!app.priceHistory[i][token.symbol]) {
+                    app.priceHistory[i][token.symbol] = [];
+                }
+                
+                app.priceHistory[i][token.symbol].push({
+                    time: timestamp,
+                    price: priceInUSDT
+                });
+                
+                if (app.priceHistory[i][token.symbol].length > 50) {
+                    app.priceHistory[i][token.symbol].shift();
+                }
+            } catch (err2) {
+                console.error('Erreur calcul prix via WETH', err2);
+            }
         }
     }
     
