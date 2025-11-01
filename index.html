@@ -992,7 +992,7 @@ function initChart() {
                 },
                 title: {
                     display: true,
-                    text: 'Prix Tokens en USD - Temps Réel',
+                    text: 'Prix Tokens en Temps Réel (pour 1 ' + (CONFIG.chains[app.chainId]?.symbol || 'Token') + ')',
                     font: { size: 16, weight: 'bold' },
                     padding: 20
                 }
@@ -1018,7 +1018,7 @@ function initChart() {
                 y: {
                     title: {
                         display: true,
-                        text: 'Prix (USD)',
+                        text: 'Quantité de Tokens',
                         font: { size: 12, weight: 'bold' }
                     },
                     grid: {
