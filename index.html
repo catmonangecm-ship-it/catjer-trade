@@ -1067,7 +1067,11 @@ function updateChart() {
     }
     
     app.priceChart.data.datasets = datasets;
-    app.priceChart.options.plugins.title.text = 'Prix Tokens en USD - Temps Réel';
+    
+    if (app.chainId && CONFIG.chains[app.chainId]) {
+        app.priceChart.options.plugins.title.text = 'Prix Tokens en Temps Réel (pour 1 ' + CONFIG.chains[app.chainId].symbol + ')';
+    }
+    
     app.priceChart.update('none');
 }
 
